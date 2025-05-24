@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
+
 @Table(name = "Commentaries")
+
 public class Commentary {
 @Id
 @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,4 +32,17 @@ private User user;
 @ManyToOne
 @JoinColumn(name = "episode_id", nullable = false)
 private Episode episode;
+
+@Override
+public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Commentary that = (Commentary) o;
+    return id != null && id.equals(that.id);
+}
+
+@Override
+public int hashCode() {
+    return id != null ? id.hashCode() : 0;
+}
 }

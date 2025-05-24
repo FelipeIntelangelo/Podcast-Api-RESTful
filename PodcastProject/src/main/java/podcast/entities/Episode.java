@@ -12,7 +12,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "Episodes")
+
 public class Episode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

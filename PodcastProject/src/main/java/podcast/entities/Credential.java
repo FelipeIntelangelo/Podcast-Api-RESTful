@@ -5,12 +5,11 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@ToString
+@Data
+@Embeddable
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Embeddable
 public class Credential {
     private String email;
     private String username;
