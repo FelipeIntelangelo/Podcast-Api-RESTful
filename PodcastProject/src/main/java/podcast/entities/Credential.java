@@ -1,8 +1,15 @@
 package podcast.entities;
 
 import jakarta.persistence.Embeddable;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
 @Embeddable
 public class Credential {
     private String email;

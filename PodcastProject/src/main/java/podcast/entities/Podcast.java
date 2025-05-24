@@ -1,39 +1,45 @@
 package podcast.entities;
 
-    import jakarta.persistence.*;
-    import podcast.entities.enums.Category;
+import jakarta.persistence.*;
+import lombok.*;
+import podcast.entities.enums.Category;
 
-    import java.time.LocalDateTime;
-    import java.util.List;
+import java.time.LocalDateTime;
+import java.util.List;
 
-    @Entity
-    @Table(name = "Podcasts")
-    public class Podcast {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Integer id;
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "Podcasts")
+public class Podcast {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-        @Column(nullable = false)
-        private String title;
+    @Column(nullable = false)
+    private String title;
 
-        private String description;
-        private String coverImageUrl;
-        private Boolean isActive = true;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+    private String description;
+    private String coverImageUrl;
+    private Boolean isActive = true;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-        @ManyToOne
-        @JoinColumn(name = "user_id", nullable = false)
-        private User user;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-        @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
-        private List<Episode> episodes;
+    @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Episode> episodes;
 
-        @ElementCollection(targetClass = Category.class)
-        @CollectionTable(name = "CategoriesXPodcast", joinColumns = @JoinColumn(name = "podcast_id"))
-        @Enumerated(EnumType.STRING)
-        @Column(name = "category")
-        private List<Category> categories;
+    @ElementCollection(targetClass = Category.class)
+    @CollectionTable(name = "CategoriesXPodcast", joinColumns = @JoinColumn(name = "podcast_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category")
+    private List<Category> categories;
 
-        // getters y setters
-    }
+    // getters y setters
+}

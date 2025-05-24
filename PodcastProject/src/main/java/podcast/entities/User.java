@@ -1,41 +1,48 @@
 package podcast.entities;
 
-    import jakarta.persistence.*;
-    import java.time.LocalDateTime;
-    import java.util.List;
+import jakarta.persistence.*;
+import lombok.*;
 
-    @Entity
-    @Table(name = "Users")
-    public class User {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Integer id;
+import java.time.LocalDateTime;
+import java.util.List;
 
-        @Column(nullable = false)
-        private String nombre;
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "Users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-        @Column(nullable = false)
-        private String apellido;
+    @Column(nullable = false)
+    private String nombre;
 
-        private String profilePicture;
-        private String bio;
+    @Column(nullable = false)
+    private String apellido;
 
-        @Embedded
-        private Credential credential;
+    private String profilePicture;
+    private String bio;
 
-        private LocalDateTime updatedAt;
+    @Embedded
+    private Credential credential;
 
-        @OneToMany(mappedBy = "user")
-        private List<Podcast> podcasts;
+    private LocalDateTime updatedAt;
 
-        @ManyToMany
-        @JoinTable(
-            name = "Favorites",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "podcast_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "podcast_id"})
-        )
-        private List<Podcast> favorites;
+    @OneToMany(mappedBy = "user")
+    private List<Podcast> podcasts;
 
-        // getters y setters
-    }
+    @ManyToMany
+    @JoinTable(
+        name = "Favorites",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "podcast_id"),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "podcast_id"})
+    )
+    private List<Podcast> favorites;
+
+    // getters y setters
+}
