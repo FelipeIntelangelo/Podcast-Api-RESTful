@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package podcast.model;
 
 public enum Category {
     TECNOLOGIA,

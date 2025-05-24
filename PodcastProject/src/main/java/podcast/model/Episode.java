@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package podcast.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
