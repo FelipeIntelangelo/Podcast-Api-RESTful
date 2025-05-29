@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "podcast")
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -37,7 +37,7 @@ public class Episode {
     private Integer chapter;
 
     @Column(nullable = false)
-    private String audioUrl;
+    private String audioPath;
 
     @Column(nullable = false)
     @Convert(converter = DurationConverter.class)
