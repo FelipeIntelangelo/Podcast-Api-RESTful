@@ -2,8 +2,10 @@ package podcast.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import podcast.entities.helpers.DurationConverter;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 
 @Getter
@@ -28,13 +30,19 @@ public class Episode {
     @Column(nullable = false)
     private LocalDateTime publicationDate;
 
+    private Integer views;
+
     private Integer season;
+
     private Integer chapter;
 
     @Column(nullable = false)
     private String audioUrl;
 
-    private Integer durationSeconds;
+    @Column(nullable = false)
+    @Convert(converter = DurationConverter.class)
+    private Duration duration;
+
     private LocalDateTime createdAt;
 
     @ManyToOne

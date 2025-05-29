@@ -1,4 +1,4 @@
-package podcast.repositories;
+package podcast.repositories.interfaces;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import podcast.entities.User;
