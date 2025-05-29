@@ -1,4 +1,4 @@
-package podcast.entities.enums;
+package podcast.model.entities.enums;
 
 public enum Roles {
     ADMIN,

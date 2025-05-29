@@ -1,4 +1,4 @@
-package podcast.entities;
+package podcast.model.entities;
 
 import jakarta.persistence.Embeddable;
 import lombok.*;

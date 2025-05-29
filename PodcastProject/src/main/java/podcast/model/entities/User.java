@@ -1,4 +1,4 @@
-package podcast.entities;
+package podcast.model.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "Users")
 public class User {
     @Id

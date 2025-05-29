@@ -1,4 +1,4 @@
-package podcast.entities.helpers;
+package podcast.model.entities.helpers;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

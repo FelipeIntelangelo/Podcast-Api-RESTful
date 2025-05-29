@@ -1,8 +1,8 @@
-package podcast.entities;
+package podcast.model.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import podcast.entities.enums.Category;
+import podcast.model.entities.enums.Category;
 
 import java.time.LocalDateTime;
 import java.util.List;

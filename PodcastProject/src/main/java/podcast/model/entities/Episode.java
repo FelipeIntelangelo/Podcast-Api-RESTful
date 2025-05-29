@@ -1,8 +1,8 @@
-package podcast.entities;
+package podcast.model.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import podcast.entities.helpers.DurationConverter;
+import podcast.model.entities.helpers.DurationConverter;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
