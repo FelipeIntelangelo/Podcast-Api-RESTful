@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Embeddable
-@JoinColumn(nullable = true) // Aclaro este valor, para mayor legibilidad, aunque no es necesario
 public class Rating {
 
     private Double rating; // Valoración (1-5) escala 1-10
