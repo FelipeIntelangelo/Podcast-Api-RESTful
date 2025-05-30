@@ -1,5 +1,6 @@
 package podcast.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import podcast.model.entities.enums.Category;
@@ -33,6 +34,7 @@ public class Podcast {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties("podcasts")
     private User user;
 
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)

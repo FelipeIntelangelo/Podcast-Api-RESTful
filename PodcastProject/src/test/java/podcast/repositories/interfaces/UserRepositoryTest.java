@@ -3,13 +3,13 @@ package podcast.repositories.interfaces;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import podcast.model.repositories.interfaces.UserRepository;
+import podcast.model.repositories.interfaces.IUserRepository;
 
 @DataJpaTest
 class UserRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private IUserRepository IUserRepository;
 
     @Test
     void saveUser() {
