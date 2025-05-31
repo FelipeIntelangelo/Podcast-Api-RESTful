@@ -7,7 +7,6 @@ import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IPodcastRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PodcastService {
@@ -15,15 +14,22 @@ public class PodcastService {
     IPodcastRepository podcastRepository;
 
 
-public void saveOrReplace(Podcast podcast) {
-    podcastRepository.findAll().stream()
-            .filter(podcastpvt -> podcastpvt.getTitle().equals(podcast.getTitle()))
-            .findFirst()
-            .ifPresent(podcastpvt -> {
-                throw new PodcastNotFoundException("Podcast with name " + podcast.getTitle() + " already exists");
-            });
-    podcastRepository.save(podcast);
-}
+    public void save(Podcast podcast) {
+        podcastRepository.findAll().stream()
+                .filter(podcastpvt -> podcastpvt.getTitle().equals(podcast.getTitle()))
+                .findFirst()
+                .ifPresent(podcastpvt -> {
+                    throw new PodcastNotFoundException("Podcast with name " + podcast.getTitle() + " already exists");
+                });
+        podcastRepository.save(podcast);
+    }
+
+    public void update(Podcast podcast) {
+        if (!podcastRepository.existsById(podcast.getId())) {
+            throw new PodcastNotFoundException("Podcast with ID " + podcast.getId() + " not found");
+        }
+        podcastRepository.save(podcast);
+    }
     public List<Podcast> getAllPodcasts() {
         List<Podcast> podcasts = podcastRepository.findAll();
         if (podcasts.isEmpty()) {

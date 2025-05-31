@@ -60,9 +60,18 @@ public class PodcastController {
 
 
     @PostMapping
-    public ResponseEntity<String> saveOrReplace(@RequestBody @Valid Podcast podcast) {
-        podcastService.saveOrReplace(podcast);
+    public ResponseEntity<String> save(@RequestBody @Valid Podcast podcast) {
+        podcastService.save(podcast);
         return ResponseEntity.ok("Podcast saved successfully");
+    }
+
+    @PutMapping("/{podcastId}")
+    public ResponseEntity<String> update(@PathVariable("podcastId") Long podcastId, @RequestBody @Valid Podcast podcast) {
+        if (!podcastId.equals(podcast.getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Podcast ID in path does not match ID in body");
+        }
+        podcastService.save(podcast);
+        return ResponseEntity.ok("Podcast updated successfully");
     }
 
     @DeleteMapping("/{podcastId}")
