@@ -13,12 +13,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Credential {
-    @Email
-    @NotBlank
+
+
     private String email;
-    @NotBlank
+
     private String username;
-    @NotBlank
+
     private String password;
     private Boolean isVerified = false;
     private LocalDateTime lastLogin;

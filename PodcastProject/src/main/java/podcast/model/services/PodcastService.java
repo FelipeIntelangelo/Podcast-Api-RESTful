@@ -14,11 +14,16 @@ public class PodcastService {
     @Autowired
     IPodcastRepository podcastRepository;
 
-    public void saveOrReplace(Podcast podcast){
-        Optional<Podcast> existingPodcast = podcastRepository.findById(podcast.getId());
-        podcastRepository.save(podcast);
-    }
 
+public void saveOrReplace(Podcast podcast) {
+    podcastRepository.findAll().stream()
+            .filter(podcastpvt -> podcastpvt.getTitle().equals(podcast.getTitle()))
+            .findFirst()
+            .ifPresent(podcastpvt -> {
+                throw new PodcastNotFoundException("Podcast with name " + podcast.getTitle() + " already exists");
+            });
+    podcastRepository.save(podcast);
+}
     public List<Podcast> getAllPodcasts() {
         List<Podcast> podcasts = podcastRepository.findAll();
         if (podcasts.isEmpty()) {

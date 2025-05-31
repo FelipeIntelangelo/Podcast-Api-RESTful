@@ -1,11 +1,13 @@
 package podcast.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import podcast.model.entities.Podcast;
-import podcast.model.exceptions.AlreadyCreated;
+import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.services.PodcastService;
 
@@ -20,17 +22,30 @@ public class PodcastController {
     private PodcastService podcastService;
 
     //HANDLERS
+
     @ExceptionHandler(PodcastNotFoundException.class)
     public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
-    @ExceptionHandler(AlreadyCreated.class)
-    public ResponseEntity<String> handleAlreadyCreated(AlreadyCreated ex) {
+    @ExceptionHandler(AlreadyCreatedException.class)
+    public ResponseEntity<String> handleAlreadyCreated(AlreadyCreatedException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + ", " + msg2)
+                .orElse("Validation error");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
     //END HANDLERS
 
+    // -------------------------------------------------------------------------------------------------------------------
+
     //START MAPPINGS
+
     @GetMapping
     public ResponseEntity<List<Podcast>> getAll() {
         List<Podcast> podcasts = podcastService.getAllPodcasts();
@@ -45,7 +60,7 @@ public class PodcastController {
 
 
     @PostMapping
-    public ResponseEntity<String> saveOrReplace(@RequestBody Podcast podcast) {
+    public ResponseEntity<String> saveOrReplace(@RequestBody @Valid Podcast podcast) {
         podcastService.saveOrReplace(podcast);
         return ResponseEntity.ok("Podcast saved successfully");
     }
