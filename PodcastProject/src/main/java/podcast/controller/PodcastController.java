@@ -1,10 +1,12 @@
 package podcast.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import podcast.model.entities.Podcast;
 import podcast.model.services.PodcastService;
 
+import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,23 +18,28 @@ public class PodcastController {
     private PodcastService podcastService;
 
     @GetMapping
-    public List<Podcast> getAll() {
-        return podcastService.getAllPodcasts();
+    public ResponseEntity<List<Podcast>> getAll() {
+        List<Podcast> podcasts = podcastService.getAllPodcasts();
+        return ResponseEntity.ok(podcasts);
     }
 
     @GetMapping("/{podcastId}")
-    public Optional<Podcast> getById(@PathVariable("podcastId") Long podcastId) {
-        return podcastService.getPodcastById(podcastId);
+    public ResponseEntity<Podcast> getById(@PathVariable("podcastId") Long podcastId) {
+        return podcastService.getPodcastById(podcastId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public void saveOrReplace(@RequestBody Podcast podcast) {
+    public ResponseEntity<String> saveOrReplace(@RequestBody Podcast podcast) {
         podcastService.saveOrReplace(podcast);
+        return ResponseEntity.ok("Podcast saved successfully");
     }
 
     @DeleteMapping("/{podcastId}")
-    public void deleteById(@PathVariable("podcastId") Long podcastId) {
+    public ResponseEntity<String> deleteById(@PathVariable("podcastId") Long podcastId) {
         podcastService.deleteById(podcastId);
+        return ResponseEntity.ok("Podcast deleted successfully");
     }
 
 }

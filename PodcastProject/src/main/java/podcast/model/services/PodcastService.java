@@ -13,6 +13,10 @@ public class PodcastService {
     @Autowired
     IPodcastRepository podcastRepository;
 
+    public void saveOrReplace(Podcast podcast){
+        podcastRepository.save(podcast);
+    }
+
     public List<Podcast> getAllPodcasts() {
         return podcastRepository.findAll();
     }
@@ -21,9 +25,6 @@ public class PodcastService {
         return podcastRepository.findById(podcastId);
     }
 
-    public void saveOrReplace(Podcast podcast){
-        podcastRepository.save(podcast);
-    }
 
     public void deleteById(Long podcastId) {
         podcastRepository.deleteById(podcastId);
