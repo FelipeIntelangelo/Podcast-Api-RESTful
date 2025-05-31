@@ -3,6 +3,7 @@ package podcast.model.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Podcast;
+import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IPodcastRepository;
 
 import java.util.List;
@@ -18,7 +19,11 @@ public class PodcastService {
     }
 
     public List<Podcast> getAllPodcasts() {
-        return podcastRepository.findAll();
+        List<Podcast> podcasts = podcastRepository.findAll();
+        if (podcasts.isEmpty()) {
+            throw new PodcastNotFoundException("No podcasts found");
+        }
+        return podcasts;
     }
 
     public Optional<Podcast> getPodcastById(Long podcastId) {

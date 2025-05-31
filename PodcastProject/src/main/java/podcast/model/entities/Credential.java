@@ -23,7 +23,6 @@ public class Credential {
     @NotBlank
     private String password;
     private Boolean isVerified = false;
-    @
     private LocalDateTime lastLogin;
     private String resetToken;
     private LocalDateTime createdAt;
