@@ -5,12 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import podcast.model.entities.Podcast;
+import podcast.model.exceptions.AlreadyCreated;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.services.PodcastService;
 
-import java.net.http.HttpClient;
 import java.util.List;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping(path = "podcastUTN/v1/podcasts")
@@ -24,6 +24,10 @@ public class PodcastController {
     public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+    @ExceptionHandler(AlreadyCreated.class)
+    public ResponseEntity<String> handleAlreadyCreated(AlreadyCreated ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
     //END HANDLERS
 
     //START MAPPINGS
@@ -34,9 +38,9 @@ public class PodcastController {
     }
 
     @GetMapping("/{podcastId}")
-    public Podcast getById(@PathVariable("podcastId") Long podcastId) {
-        return podcastService.getPodcastById(podcastId).orElseThrow( () ->
-            new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
+    public ResponseEntity<Podcast> getById(@PathVariable("podcastId") Long podcastId) {
+        Podcast podcastPivot = podcastService.getPodcastById(podcastId);
+        return ResponseEntity.ok(podcastPivot);
     }
 
 

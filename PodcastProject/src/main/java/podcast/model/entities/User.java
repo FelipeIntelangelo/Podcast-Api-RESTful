@@ -1,7 +1,9 @@
 package podcast.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import podcast.model.entities.enums.Roles;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,9 +36,14 @@ public class User {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnoreProperties("user")
     private List<Podcast> podcasts;
 
+    @ElementCollection(targetClass = Roles.class)
+    private List<Roles> roles;
+
     @ManyToMany
+    @JsonIgnoreProperties("favorites")
     @JoinTable(
         name = "Favorites",
         joinColumns = @JoinColumn(name = "user_id"),

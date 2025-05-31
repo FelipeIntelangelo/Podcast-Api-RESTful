@@ -15,6 +15,7 @@ public class PodcastService {
     IPodcastRepository podcastRepository;
 
     public void saveOrReplace(Podcast podcast){
+        Optional<Podcast> existingPodcast = podcastRepository.findById(podcast.getId());
         podcastRepository.save(podcast);
     }
 
@@ -26,8 +27,9 @@ public class PodcastService {
         return podcasts;
     }
 
-    public Optional<Podcast> getPodcastById(Long podcastId) {
-        return podcastRepository.findById(podcastId);
+    public Podcast getPodcastById(Long podcastId) {
+        return podcastRepository.findById(podcastId).orElseThrow( () ->
+                new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
     }
 
 
