@@ -49,4 +49,18 @@ public class PodcastService {
         podcastRepository.deleteById(podcastId);
     }
 
+    public void deleteByTitle(String title) {
+        Podcast podcast = podcastRepository.findAll().stream()
+                .filter(podcastpvt -> podcastpvt.getTitle().equals(title))
+                .findFirst()
+                .orElseThrow(() -> new PodcastNotFoundException("Podcast with title " + title + " not found"));
+        podcastRepository.delete(podcast);
+    }
+
+    public List<Podcast> getPodcastsByUserId(Integer userId) {
+        return podcastRepository.findAll().stream()
+                .filter(podcast -> podcast.getUser().getId().equals(userId))
+                .toList();
+    }
+
 }

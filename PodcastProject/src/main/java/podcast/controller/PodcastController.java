@@ -46,6 +46,7 @@ public class PodcastController {
 
     //START MAPPINGS
 
+    //GET MAPPINGS
     @GetMapping
     public ResponseEntity<List<Podcast>> getAll() {
         List<Podcast> podcasts = podcastService.getAllPodcasts();
@@ -59,6 +60,7 @@ public class PodcastController {
     }
 
 
+    //POST - PUT MAPPINGS
     @PostMapping
     public ResponseEntity<String> save(@RequestBody @Valid Podcast podcast) {
         podcastService.save(podcast);
@@ -74,11 +76,19 @@ public class PodcastController {
         return ResponseEntity.ok("Podcast updated successfully");
     }
 
+    //DELETE MAPPINGS
     @DeleteMapping("/{podcastId}")
     public ResponseEntity<String> deleteById(@PathVariable("podcastId") Long podcastId) {
         podcastService.deleteById(podcastId);
         return ResponseEntity.ok("Podcast deleted successfully");
     }
+
+    @DeleteMapping("/{title}")
+    public ResponseEntity<String> deleteByTitle(@PathVariable("title") String title) {
+        podcastService.deleteByTitle(title);
+        return ResponseEntity.ok("Podcast with title '" + title + "' deleted successfully");
+    }
+
     //END MAPPINGS
 
 }
