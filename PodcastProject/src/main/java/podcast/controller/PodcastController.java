@@ -70,7 +70,7 @@ public class PodcastController {
         if (!podcastId.equals(podcast.getId())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Podcast ID in path does not match ID in body");
         }
-        podcastService.save(podcast);
+        podcastService.update(podcast);
         return ResponseEntity.ok("Podcast updated successfully");
     }
 

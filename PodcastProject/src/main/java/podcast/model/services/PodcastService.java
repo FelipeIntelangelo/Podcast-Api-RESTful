@@ -30,6 +30,7 @@ public class PodcastService {
         }
         podcastRepository.save(podcast);
     }
+
     public List<Podcast> getAllPodcasts() {
         List<Podcast> podcasts = podcastRepository.findAll();
         if (podcasts.isEmpty()) {
