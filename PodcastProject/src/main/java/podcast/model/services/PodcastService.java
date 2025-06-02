@@ -31,12 +31,19 @@ public class PodcastService {
         podcastRepository.save(podcast);
     }
 
-    public List<Podcast> getAllPodcasts() {
-        List<Podcast> podcasts = podcastRepository.findAll();
-        if (podcasts.isEmpty()) {
-            throw new PodcastNotFoundException("No podcasts found");
+    public List<Podcast> getAllFiltered(String title, Integer userId) {
+         List<Podcast> filtered = podcastRepository.findAll().stream()
+                .filter(p -> title == null || p.getTitle().equalsIgnoreCase(title))
+                .filter(p -> userId == null || p.getUser().getId().equals(userId))
+                .toList();
+        if (filtered.isEmpty()) {
+            List<Podcast> allPodcasts = podcastRepository.findAll();
+            if (allPodcasts.isEmpty()){
+                throw new PodcastNotFoundException("No podcasts found");
+            }
+            return allPodcasts;
         }
-        return podcasts;
+        return filtered;
     }
 
     public Podcast getPodcastById(Long podcastId) {
