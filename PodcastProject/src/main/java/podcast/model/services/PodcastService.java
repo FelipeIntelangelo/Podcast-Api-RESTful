@@ -3,6 +3,7 @@ package podcast.model.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Podcast;
+import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IPodcastRepository;
 
@@ -19,7 +20,7 @@ public class PodcastService {
                 .filter(podcastpvt -> podcastpvt.getTitle().equals(podcast.getTitle()))
                 .findFirst()
                 .ifPresent(podcastpvt -> {
-                    throw new PodcastNotFoundException("Podcast with name " + podcast.getTitle() + " already exists");
+                    throw new AlreadyCreatedException("Podcast with name " + podcast.getTitle() + " already exists");
                 });
         podcastRepository.save(podcast);
     }

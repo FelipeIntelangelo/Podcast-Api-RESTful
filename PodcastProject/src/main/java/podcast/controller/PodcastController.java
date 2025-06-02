@@ -27,6 +27,7 @@ public class PodcastController {
     public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
     @ExceptionHandler(AlreadyCreatedException.class)
     public ResponseEntity<String> handleAlreadyCreated(AlreadyCreatedException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
