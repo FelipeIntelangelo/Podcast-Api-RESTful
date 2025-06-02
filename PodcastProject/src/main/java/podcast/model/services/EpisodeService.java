@@ -54,7 +54,7 @@ public class EpisodeService {
 
     public void update(Episode episode) {
 
-        if (!episodeRepository.existsById(episode.getId())) {
+        if (!episodeRepository.existsById(Long.valueOf(episode.getId()))) {
             throw new IllegalArgumentException("Episode with ID " + episode.getId() + " not found");
         }
         episodeRepository.save(episode);
