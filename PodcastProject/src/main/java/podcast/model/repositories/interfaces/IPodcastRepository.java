@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface IPodcastRepository extends JpaRepository<Podcast, Long> {
-
     List<Podcast> findByUser_IdOrTitleIgnoreCase(Integer userId, String title);
+    List<Podcast> findByTitleIgnoreCase(String title);
 }
