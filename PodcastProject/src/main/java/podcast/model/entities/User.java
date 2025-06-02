@@ -10,10 +10,10 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@ToString
 @Builder
 @Table(name = "Users")
 public class User {
@@ -64,4 +64,7 @@ public class User {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
+
 }
+
+// Note: The `Credential` class is embedded

@@ -32,16 +32,18 @@ public class PodcastService {
     }
 
     public List<Podcast> getAllFiltered(String title, Integer userId) {
-         List<Podcast> filtered = podcastRepository.findAll().stream()
-                .filter(p -> title == null || p.getTitle().equalsIgnoreCase(title))
-                .filter(p -> userId == null || p.getUser().getId().equals(userId))
-                .toList();
-        if (filtered.isEmpty()) {
-            List<Podcast> allPodcasts = podcastRepository.findAll();
-            if (allPodcasts.isEmpty()){
-                throw new PodcastNotFoundException("No podcasts found");
+        List<Podcast> filtered;
+
+        if (title == null && userId == null) {
+            filtered = podcastRepository.findAll();
+        } else {
+            filtered = podcastRepository.findByUser_IdOrTitleIgnoreCase(userId, title);
+            if (filtered.isEmpty()) {
+                filtered = podcastRepository.findAll();
             }
-            return allPodcasts;
+        }
+        if (filtered.isEmpty()) {
+            throw new PodcastNotFoundException("No podcasts found");
         }
         return filtered;
     }
@@ -62,12 +64,6 @@ public class PodcastService {
                 .findFirst()
                 .orElseThrow(() -> new PodcastNotFoundException("Podcast with title " + title + " not found"));
         podcastRepository.delete(podcast);
-    }
-
-    public List<Podcast> getPodcastsByUserId(Integer userId) {
-        return podcastRepository.findAll().stream()
-                .filter(podcast -> podcast.getUser().getId().equals(userId))
-                .toList();
     }
 
 }
