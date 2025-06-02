@@ -42,14 +42,17 @@ public class PodcastController {
     }
     //END HANDLERS
 
-    // -------------------------------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------
 
     //START MAPPINGS
 
     //GET MAPPINGS
     @GetMapping
-    public ResponseEntity<List<Podcast>> getAll() {
-        List<Podcast> podcasts = podcastService.getAllPodcasts();
+    public ResponseEntity<List<Podcast>> getAll(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Integer userId
+    ) {
+        List<Podcast> podcasts = podcastService.getAllFiltered(title, userId);
         return ResponseEntity.ok(podcasts);
     }
 

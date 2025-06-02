@@ -10,10 +10,10 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@ToString
 @Builder
 @Table(name = "Podcasts")
 
@@ -38,6 +38,7 @@ public class Podcast {
     private User user;
 
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("podcasts")
     private List<Episode> episodes;
 
     @ElementCollection(targetClass = Category.class)
