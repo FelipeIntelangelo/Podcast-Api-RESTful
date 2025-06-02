@@ -1,5 +1,6 @@
 package podcast.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import podcast.model.entities.helpers.DurationConverter;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = "podcast")
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -20,7 +21,7 @@ import java.util.List;
 public class Episode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false)
     private String title;
@@ -47,6 +48,7 @@ public class Episode {
 
     @ManyToOne
     @JoinColumn(name = "podcast_id", nullable = false)
+    @JsonIgnoreProperties("episodes")
     private Podcast podcast;
 
     @OneToMany(mappedBy = "episode")
