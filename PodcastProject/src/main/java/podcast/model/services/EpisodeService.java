@@ -16,6 +16,7 @@ public class EpisodeService {
     IEpisodeRepository episodeRepository;
     IPodcastRepository podcastRepository;
 
+    // SAVE
     public void save(Episode episode) {
         podcastRepository.findById(episode.getPodcast().getId()).ifPresentOrElse(
                 existingPodcast -> {
@@ -36,12 +37,46 @@ public class EpisodeService {
 
     }
 
+    // UPDATE
+    public void update(Episode episode) {
+
+        if (!episodeRepository.existsById(Long.valueOf(episode.getId()))) {
+            throw new IllegalArgumentException("Episode with ID " + episode.getId() + " not found");
+        }
+        episodeRepository.save(episode);
+    }
+
+    // DELETE
+    public void deleteById(Long episodeId) {
+        if (!episodeRepository.existsById(episodeId)) {
+            throw new IllegalArgumentException("Episode with ID " + episodeId + " not found");
+        }
+        episodeRepository.deleteById(episodeId);
+    }
+
+    public void deleteByTitle(String title){
+        // PUEDE HABER MAS DE UN EPISODIO CON EL MISMO TÍTULO ???????
+        List<Episode> episodes = episodeRepository.findByTitleIgnoreCase(title);
+        if (episodes.isEmpty()) {
+            throw new PodcastNotFoundException("Podcast with title " + title + " not found");
+        }
+        for (Episode episode : episodes) {
+            episodeRepository.delete(episode);
+        }
+    }
+
+    // MOSTRAR - GETS
     public List<Episode> getAllEpisodes() {
         List<Episode> episodes = episodeRepository.findAll();
         if (episodes.isEmpty()) {
             throw new IllegalArgumentException("No episodes found");
         }
         return episodes;
+    }
+
+    public Episode getEpisodeById(Long episodeId) {
+        return episodeRepository.findById(episodeId).orElseThrow(() ->
+                new IllegalArgumentException("Episode with ID " + episodeId + " not found"));
     }
 
     public List<Episode> getEpisodesByPodcastTitle(String podcastTitle) {
@@ -52,18 +87,22 @@ public class EpisodeService {
         return podcast.getEpisodes();
     }
 
-    public void update(Episode episode) {
+    public List<Episode> getAllFiltered(String title, Long podcastId) {
+        List<Episode> filtered;
 
-        if (!episodeRepository.existsById(Long.valueOf(episode.getId()))) {
-            throw new IllegalArgumentException("Episode with ID " + episode.getId() + " not found");
+        if (title == null && podcastId == null) {
+            filtered = episodeRepository.findAll();
+        } else if (podcastId != null) {
+            filtered = episodeRepository.findByPodcast_Id(podcastId);
+            if (filtered.isEmpty()) {
+                throw new PodcastNotFoundException("No episodes found for podcast ID " + podcastId);
+            }
+        } else {
+            filtered = episodeRepository.findByTitleIgnoreCase(title);
+            if (filtered.isEmpty()) {
+                throw new PodcastNotFoundException("No episodes found with title " + title);
+            }
         }
-        episodeRepository.save(episode);
+        return filtered;
     }
-
-    public Episode getEpisodeById(Long episodeId) {
-        return episodeRepository.findById(episodeId).orElseThrow(() ->
-                new IllegalArgumentException("Episode with ID " + episodeId + " not found"));
-    }
-
-
 }

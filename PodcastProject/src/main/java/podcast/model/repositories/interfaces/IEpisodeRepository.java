@@ -8,5 +8,8 @@ import java.util.List;
 
 @Service
 public interface IEpisodeRepository extends JpaRepository<Episode, Long> {
-
+    List<Episode> findByPodcast_Id(Long podcastId);
+    List<Episode> findByTitleIgnoreCase(String title);
+    List<Episode> findByPodcast_IdAndTitleIgnoreCase(Long podcastId, String title);
+    void deleteByTitleIgnoreCase(String title);
 }
