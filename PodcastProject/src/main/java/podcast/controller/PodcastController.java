@@ -55,17 +55,21 @@ public class PodcastController {
     public ResponseEntity<List<PodcastDTO>> getAll(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Integer userId,
-            @RequestParam(required = false) String category
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Boolean orderByViews
     ) {
-        List<Podcast> podcasts = podcastService.getAllFiltered(title, userId, Category.valueOf(category));
-        return ResponseEntity.ok(podcasts.stream().map(Podcast::toDTO).toList());
+        List<PodcastDTO> podcasts = podcastService.getAllFiltered(title, userId, Category.valueOf(category), orderByViews);
+        return ResponseEntity.ok(podcasts);
     }
+
 
     @GetMapping("/{podcastId}")
     public ResponseEntity<Podcast> getById(@PathVariable("podcastId") Long podcastId) {
         Podcast podcastPivot = podcastService.getPodcastById(podcastId);
         return ResponseEntity.ok(podcastPivot);
     }
+
+
 
 
     //POST - PUT MAPPINGS

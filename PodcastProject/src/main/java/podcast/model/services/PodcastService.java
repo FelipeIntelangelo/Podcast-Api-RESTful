@@ -3,6 +3,7 @@ package podcast.model.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Podcast;
+import podcast.model.entities.dto.PodcastDTO;
 import podcast.model.entities.enums.Category;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.PodcastNotFoundException;
@@ -33,7 +34,7 @@ public class PodcastService {
         podcastRepository.save(podcast);
     }
 
-    public List<Podcast> getAllFiltered(String title, Integer userId, Category category) {
+    public List<PodcastDTO> getAllFiltered(String title, Integer userId, Category category, Boolean orderByViews) {
         List<Podcast> filtered;
 
         if (title == null && userId == null) {
@@ -47,7 +48,13 @@ public class PodcastService {
         if (filtered.isEmpty()) {
             throw new PodcastNotFoundException("No podcasts found");
         }
-        return filtered;
+        List<PodcastDTO> filteredDTO = filtered.stream()
+                .map(Podcast::toDTO)
+                .toList();
+        if (orderByViews){
+            filteredDTO.sort((p1, p2) -> Long.compare(p2.getAverageViews(), p1.getAverageViews()));
+        }
+        return filteredDTO;
     }
 
     public Podcast getPodcastById(Long podcastId) {
