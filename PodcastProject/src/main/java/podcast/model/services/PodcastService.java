@@ -3,6 +3,7 @@ package podcast.model.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Podcast;
+import podcast.model.entities.enums.Category;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IPodcastRepository;
@@ -32,13 +33,13 @@ public class PodcastService {
         podcastRepository.save(podcast);
     }
 
-    public List<Podcast> getAllFiltered(String title, Integer userId) {
+    public List<Podcast> getAllFiltered(String title, Integer userId, Category category) {
         List<Podcast> filtered;
 
         if (title == null && userId == null) {
             filtered = podcastRepository.findAll();
         } else {
-            filtered = podcastRepository.findByUser_IdOrTitleIgnoreCase(userId, title);
+            filtered = podcastRepository.findByUser_IdOrTitleIgnoreCaseOrCategories(userId, title, category);
             if (filtered.isEmpty()) {
                 filtered = podcastRepository.findAll();
             }
@@ -56,15 +57,17 @@ public class PodcastService {
 
 
     public void deleteById(Long podcastId) {
+        if (!podcastRepository.existsById(podcastId)) {
+            throw new PodcastNotFoundException("Podcast with ID " + podcastId + " not found");
+        }
         podcastRepository.deleteById(podcastId);
     }
 
     public void deleteByTitle(String title) {
-        Podcast podcast = podcastRepository.findAll().stream()
-                .filter(podcastpvt -> podcastpvt.getTitle().equals(title))
-                .findFirst()
-                .orElseThrow(() -> new PodcastNotFoundException("Podcast with title " + title + " not found"));
-        podcastRepository.delete(podcast);
+        if(!podcastRepository.existsByTitle(title)) {
+            throw new PodcastNotFoundException("Podcast with title " + title + " not found");
+        }
+        podcastRepository.deleteByTitle(title);
     }
 
 }

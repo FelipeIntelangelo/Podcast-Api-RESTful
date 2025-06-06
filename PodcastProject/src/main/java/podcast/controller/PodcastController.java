@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import podcast.model.entities.Podcast;
+import podcast.model.entities.dto.PodcastDTO;
+import podcast.model.entities.enums.Category;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.services.PodcastService;
@@ -50,12 +52,13 @@ public class PodcastController {
 
     //GET MAPPINGS
     @GetMapping
-    public ResponseEntity<List<Podcast>> getAll(
+    public ResponseEntity<List<PodcastDTO>> getAll(
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) Integer userId
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) String category
     ) {
-        List<Podcast> podcasts = podcastService.getAllFiltered(title, userId);
-        return ResponseEntity.ok(podcasts);
+        List<Podcast> podcasts = podcastService.getAllFiltered(title, userId, Category.valueOf(category));
+        return ResponseEntity.ok(podcasts.stream().map(Podcast::toDTO).toList());
     }
 
     @GetMapping("/{podcastId}")

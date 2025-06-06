@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import podcast.model.entities.enums.Category;
-
+import podcast.model.entities.dto.PodcastDTO;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -47,6 +47,21 @@ public class Podcast {
     @Column(name = "category")
     private List<Category> categories;
 
+
+    Long calcularViewsPromedio() {
+        if (episodes == null || episodes.isEmpty()) {
+            return 0L;
+        }
+        long totalViews = episodes.stream()
+                .mapToLong(Episode::getViews)
+                .sum();
+        return totalViews / episodes.size();
+    }
+
+    public PodcastDTO toDTO() {
+        return new PodcastDTO(this.getId(), this.getTitle(), this.getDescription(), this.getCategories(),
+                calcularViewsPromedio());
+    }
 
     @Override
     public boolean equals(Object o) {
