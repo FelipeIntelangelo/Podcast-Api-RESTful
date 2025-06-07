@@ -37,7 +37,7 @@ public class PodcastService {
     public List<PodcastDTO> getAllFiltered(String title, Integer userId, Category category, Boolean orderByViews) {
         List<Podcast> filtered;
 
-        if (title == null && userId == null) {
+        if (title == null && userId == null && category == null) {
             filtered = podcastRepository.findAll();
         } else {
             filtered = podcastRepository.findByUser_IdOrTitleIgnoreCaseOrCategories(userId, title, category);
