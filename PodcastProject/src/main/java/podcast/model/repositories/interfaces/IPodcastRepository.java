@@ -12,4 +12,5 @@ public interface IPodcastRepository extends JpaRepository<Podcast, Long> {
     List<Podcast> findByUser_IdOrTitleIgnoreCaseOrCategories(Integer userId, String title, Category category);
     Boolean existsByTitle(String title);
     void deleteByTitle(String title);
+    List<Podcast> findByUser_Credential_Username(String username);
 }

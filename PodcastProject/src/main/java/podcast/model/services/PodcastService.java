@@ -62,6 +62,14 @@ public class PodcastService {
                 new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
     }
 
+    public List<Podcast> getByUsername(String username) {
+        List<Podcast> podcasts = podcastRepository.findByUser_Credential_Username(username);
+        if (podcasts.isEmpty()) {
+            throw new PodcastNotFoundException("No podcasts found for user " + username);
+        }
+        return podcasts;
+    }
+
 
     public void deleteById(Long podcastId) {
         if (!podcastRepository.existsById(podcastId)) {
