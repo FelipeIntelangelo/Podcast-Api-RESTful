@@ -62,15 +62,12 @@ public class PodcastController {
         return ResponseEntity.ok(podcasts);
     }
 
-
     @GetMapping("/{podcastId}")
     public ResponseEntity<Podcast> getById(@PathVariable("podcastId") Long podcastId) {
         Podcast podcastPivot = podcastService.getPodcastById(podcastId);
         return ResponseEntity.ok(podcastPivot);
     }
-
-
-
+    //Este get lo hago de esta manera, ya que el de arriba pienso entregar el DTO y en este el podcast con todos sus atributos
 
     //POST - PUT MAPPINGS
     @PostMapping
