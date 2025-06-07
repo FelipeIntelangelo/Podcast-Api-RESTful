@@ -3,9 +3,11 @@ package podcast.model.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
-import podcast.model.entities.enums.Roles;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -16,7 +18,7 @@ import java.util.List;
 @ToString
 @Builder
 @Table(name = "Users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -38,9 +40,6 @@ public class User {
     @OneToMany(mappedBy = "user")
     @JsonIgnoreProperties("user")
     private List<Podcast> podcasts;
-
-    @ElementCollection(targetClass = Roles.class)
-    private List<Roles> roles;
 
     @ManyToMany
     @JsonIgnoreProperties("favorites")
@@ -65,6 +64,38 @@ public class User {
         return id != null ? id.hashCode() : 0;
     }
 
-}
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return credential.getRoles();
+    }
 
-// Note: The `Credential` class is embedded
+    @Override
+    public String getPassword() {
+        return credential.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return credential.getUsername();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
+    }
+}
