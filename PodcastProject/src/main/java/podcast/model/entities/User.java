@@ -25,10 +25,10 @@ public class User implements UserDetails {
     private Integer id;
 
     @Column(nullable = false)
-    private String nombre;
+    private String name;
 
     @Column(nullable = false)
-    private String apellido;
+    private String lastName;
 
     @Column(nullable = false, unique = true)
     private String nickname;
