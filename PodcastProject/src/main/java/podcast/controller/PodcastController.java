@@ -90,7 +90,7 @@ public class PodcastController {
     //Este get lo hago de esta manera, ya que el de arriba pienso entregar el DTO y en este el podcast con todos sus atributos
 
     //POST - PUT MAPPINGS
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR') or hasRole('ROLE_USER')")
     @PostMapping
     public ResponseEntity<String> save(@RequestBody @Valid Podcast podcast) {
         podcastService.save(podcast);
