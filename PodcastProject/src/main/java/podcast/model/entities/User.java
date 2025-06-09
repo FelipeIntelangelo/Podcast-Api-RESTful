@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import podcast.model.entities.dto.UserDTO;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -28,6 +29,9 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String apellido;
+
+    @Column(nullable = false, unique = true)
+    private String nickname;
 
     private String profilePicture;
     private String bio;
@@ -97,5 +101,14 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
+    }
+
+    public UserDTO toDTO() {
+        return UserDTO.builder()
+                .id(this.id)
+                .nickname(this.nickname)
+                .profilePicture(this.profilePicture)
+                .bio(this.bio)
+                .build();
     }
 }
