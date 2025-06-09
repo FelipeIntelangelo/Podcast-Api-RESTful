@@ -1,5 +1,6 @@
 package podcast.model.entities;
 
+<<<<<<< Updated upstream
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,25 +23,48 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+=======
+    import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+    import jakarta.persistence.*;
+    import lombok.*;
+    import podcast.model.entities.enums.Roles;
 
-    @Column(nullable = false)
-    private String nombre;
+    import java.time.LocalDateTime;
+    import java.util.List;
 
-    @Column(nullable = false)
-    private String apellido;
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Entity
+    @ToString
+    @Builder
+    @Table(name = "Users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Integer id;
+>>>>>>> Stashed changes
 
-    private String profilePicture;
-    private String bio;
+        @Column(nullable = false)
+        private String nombre;
 
-    @Embedded
-    private Credential credential;
+        @Column(nullable = false)
+        private String apellido;
 
-    private LocalDateTime updatedAt;
+        private String profilePicture;
+        private String bio;
 
-    @OneToMany(mappedBy = "user")
-    @JsonIgnoreProperties("user")
-    private List<Podcast> podcasts;
+        @Embedded
+        private Credential credential;
 
+        private LocalDateTime updatedAt;
+
+        @OneToMany(mappedBy = "user")
+        @JsonIgnoreProperties("user")
+        private List<Podcast> podcasts;
+
+<<<<<<< Updated upstream
     @ManyToMany
     @JsonIgnoreProperties("favorites")
     @JoinTable(
@@ -50,15 +74,31 @@ public class User implements UserDetails {
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "podcast_id"})
     )
     private List<Podcast> favorites;
+=======
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
+        private Roles role;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return id != null && id.equals(user.id);
-    }
+        @ManyToMany
+        @JsonIgnoreProperties("favorites")
+        @JoinTable(
+            name = "Favorites",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "podcast_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "podcast_id"})
+        )
+        private List<Podcast> favorites;
+>>>>>>> Stashed changes
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            User user = (User) o;
+            return id != null && id.equals(user.id);
+        }
+
+<<<<<<< Updated upstream
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
@@ -99,3 +139,10 @@ public class User implements UserDetails {
         return UserDetails.super.isEnabled();
     }
 }
+=======
+        @Override
+        public int hashCode() {
+            return id != null ? id.hashCode() : 0;
+        }
+    }
+>>>>>>> Stashed changes

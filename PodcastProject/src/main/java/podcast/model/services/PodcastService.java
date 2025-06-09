@@ -1,8 +1,10 @@
 package podcast.model.services;
 
+import podcast.model.entities.enums.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Podcast;
+import podcast.model.entities.User;
 import podcast.model.entities.dto.PodcastDTO;
 import podcast.model.entities.enums.Category;
 import podcast.model.exceptions.AlreadyCreatedException;
@@ -24,6 +26,12 @@ public class PodcastService {
                 .ifPresent(podcastpvt -> {
                     throw new AlreadyCreatedException("Podcast with name " + podcast.getTitle() + " already exists");
                 });
+
+        User user = podcast.getUser();
+        if (user != null && user.getRole() != Roles.CREATOR) {
+            user.setRole(Roles.CREATOR);
+        }
+
         podcastRepository.save(podcast);
     }
 
