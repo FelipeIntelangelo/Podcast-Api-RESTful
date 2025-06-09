@@ -16,11 +16,11 @@ public class EpisodeService {
 private final IEpisodeRepository episodeRepository;
 private final IPodcastRepository podcastRepository;
 
-@Autowired
-public EpisodeService(IEpisodeRepository episodeRepository, IPodcastRepository podcastRepository) {
-    this.episodeRepository = episodeRepository;
-    this.podcastRepository = podcastRepository;
-}
+    @Autowired
+    public EpisodeService(IEpisodeRepository episodeRepository, IPodcastRepository podcastRepository) {
+        this.episodeRepository = episodeRepository;
+        this.podcastRepository = podcastRepository;
+    }
 
     // SAVE
     public void save(Episode episode) {

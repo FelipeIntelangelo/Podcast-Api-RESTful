@@ -58,9 +58,20 @@ public class Podcast {
         return totalViews / episodes.size();
     }
 
+    Double calcularRatingPromedio() {
+        if (episodes == null || episodes.isEmpty()) {
+            return 0.0;
+        }
+        double totalRating = episodes.stream().
+                mapToDouble(Episode::getAverageRating)
+                .filter(rating -> rating > 0) // Exclude null ratings
+                .sum();
+        return totalRating / episodes.size();
+    }
+
     public PodcastDTO toDTO() {
         return new PodcastDTO(this.getId(), this.getTitle(), this.getDescription(), this.getCategories(),
-                calcularViewsPromedio());
+                calcularViewsPromedio(), calcularRatingPromedio());
     }
 
     @Override

@@ -26,4 +26,5 @@ public class PodcastDTO {
     private String description;
     private List<Category> category;
     private Long averageViews;
+    private Double averageRating;
 }
