@@ -1,61 +1,54 @@
-// src/main/java/podcast/model/services/UserService.java
-package podcast.model.services;
+ package podcast.model.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.User;
+import podcast.model.entities.enums.Role;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.UserNotFoundException;
 import podcast.model.repositories.interfaces.IUserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
 
     private final IUserRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(IUserRepository userRepository) {
+    public UserService(IUserRepository userRepository, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public void saveOrReplace(User user) {
-        boolean existsNickname = userRepository.findAll().stream()
-                .anyMatch(u -> u.getNickname().equalsIgnoreCase(user.getNickname()) && !u.getId().equals(user.getId()));
-        boolean existsEmail = userRepository.findAll().stream()
-                .anyMatch(u -> u.getCredential() != null && user.getCredential() != null &&
-                        u.getCredential().getEmail().equalsIgnoreCase(user.getCredential().getEmail()) &&
-                        !u.getId().equals(user.getId()));
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 
-        if (existsNickname) {
-            throw new AlreadyCreatedException("Ya existe un usuario con el nickname: " + user.getNickname());
+    public void save(User user) {
+        // Verifica que el id sea nulo pq es autoincremental en la bdd
+        if (user.getId() != null) {
+            throw new AlreadyCreatedException("No se debe enviar un ID al registrar un usuario nuevo");
         }
-        if (existsEmail) {
-            throw new AlreadyCreatedException("Ya existe un usuario con el email: " + user.getCredential().getEmail());
+        // Asigna rol por defecto si no tiene
+        user.getCredential().getRoles().clear();
+        user.getCredential().getRoles().add(Role.ROLE_USER);
+        // Encripta la contraseña
+        String rawPassword = user.getCredential().getPassword();
+        user.getCredential().setPassword(passwordEncoder.encode(rawPassword));
+
+        // Asigna fecha de creación si es nuevo
+        if (user.getCredential().getCreatedAt() == null) {
+            user.getCredential().setCreatedAt(LocalDateTime.now());
         }
 
         userRepository.save(user);
     }
 
-    public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        if (users.isEmpty()) {
-            throw new UserNotFoundException("No hay usuarios registrados");
-        }
-        return users;
-    }
-
-    public Optional<User> getUserById(Integer userId) {
-        return userRepository.findById(userId)
-                .or(() -> { throw new UserNotFoundException("Usuario no encontrado con id: " + userId); });
-    }
-
-    public void deleteById(Integer userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException("Usuario no encontrado con id: " + userId);
-        }
-        userRepository.deleteById(userId);
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
     }
 }

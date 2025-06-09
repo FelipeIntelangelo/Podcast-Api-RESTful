@@ -1,10 +1,20 @@
 package podcast.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import podcast.cfg.JwtUtil;
 import podcast.model.entities.User;
+import podcast.model.entities.dto.LoginRequest;
+import podcast.model.entities.dto.LoginResponse;
 import podcast.model.entities.dto.UserDTO;
+import podcast.model.services.UserDetailsServiceImpl;
 import podcast.model.services.UserService;
 import podcast.model.exceptions.UserNotFoundException;
 
@@ -14,68 +24,103 @@ import java.util.List;
 @RequestMapping("/podcastUTN/v1/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    // ── Inyeccion De Dependencias Necesarias ─────────────────────────────────────────
 
-    // Filtrar usuarios por ID, nickname, profilePicture y bio (Invitado)
-    @GetMapping("/filter")
-    public ResponseEntity<List<UserDTO>> filterUsers(
-            @RequestParam(required = false) Integer id,
-            @RequestParam(required = false) String nickname,
-            @RequestParam(required = false) String profilePicture,
-            @RequestParam(required = false) String bio
+    private final UserService userService;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+
+    // ── Constructor ──────────────────────────────────────────────────────────────────
+
+    public UserController(
+            UserService userService,
+            UserDetailsServiceImpl userDetailsService,
+            AuthenticationManager authenticationManager,
+            JwtUtil jwtUtil
     ) {
-        List<UserDTO> filtered = userService.getAllUsers().stream()
-                .filter(u -> id == null || u.getId().equals(id))
-                .filter(u -> nickname == null || u.getNickname().equalsIgnoreCase(nickname))
-                .filter(u -> profilePicture == null || (u.getProfilePicture() != null && u.getProfilePicture().equalsIgnoreCase(profilePicture)))
-                .filter(u -> bio == null || (u.getBio() != null && u.getBio().toLowerCase().contains(bio.toLowerCase())))
-                .map(User::toDTO)
-                .toList();
-        return ResponseEntity.ok(filtered);
+        this.userService = userService;
+        this.userDetailsService = userDetailsService;
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
     }
 
-    // Obtener todos los usuarios (Invitado)
-    @GetMapping("/{userId}")
+    // ── Registrarse ──────────────────────────────────────────────────────────────────
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody @Valid User user) {
+        userService.save(user);
+        return ResponseEntity.ok("Usuario registrado correctamente");
+    }
+
+    // ── Mi Perfil ────────────────────────────────────────────────────────────────────
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = userService
+            .getAllUsers()
+            .stream()
+            .filter(u -> u.getCredential().getUsername().equals(userDetails.getUsername()))
+            .findFirst()
+            .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+        return ResponseEntity.ok(user.toDTO());
+    }
+
+    // ── Actualizar Perfil ────────────────────────────────────────────────────────────
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDTO> updateCurrentUser(@AuthenticationPrincipal UserDetails userDetails,
+                                                     @RequestBody UserDTO userDTO) {
+        User user = userService
+            .getAllUsers()
+            .stream()
+            .filter(u -> u.getCredential().getUsername().equals(userDetails.getUsername()))
+            .findFirst()
+            .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+
+        // Actualiza los campos permitidos
+        user.setNickname(userDTO.getNickname());
+        user.setProfilePicture(userDTO.getProfilePicture());
+        user.setBio(userDTO.getBio());
+        //userService.replace(user);
+
+        return ResponseEntity.ok(user.toDTO());
+    }
+
+    // ── Obtener Todos Los Usuarios (sin Credenciales) ────────────────────────────────
+    @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userService.getAllUsers().stream()
+        List<UserDTO> users = userService.getAllUsers()
+                .stream()
                 .map(User::toDTO)
                 .toList();
         return ResponseEntity.ok(users);
     }
 
-    // Obtener un usuario por ID // Autorizacion rol:(<=Invitado)
+    // ── Obtener Todos Los Usuarios (con Credenciales) ────────────────────────────────
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public ResponseEntity<List<User>> getAllUsersWithCredentials() {
+        List<User> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+     // ── Obtener Usuario Por Id ──────────────────────────────────────────────────────
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Integer id) {
-        return userService.getUserById(id)
-                .map(user -> ResponseEntity.ok(user.toDTO()))
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        User user = userService.getUserById(id);
+        return ResponseEntity.ok(user.toDTO());
     }
 
-    // Crear un nuevo usuario (Invitado)
-    @PostMapping
-    public ResponseEntity<String> createUser(@RequestBody UserDTO userDTO) {
-        userService.saveOrReplace(fromDTO(userDTO));
-        return ResponseEntity.ok("Usuario creado correctamente");
+    // ── Obtener Usuario Con Credenciales Por Id (solo Admin) ─────────────────────────
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all/{id}")
+    public ResponseEntity<User> getUserWithCredentialsById(@PathVariable Long id) {
+        User user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
     }
 
-    // Actualizar un usuario existente (User Registrado)
-    @PutMapping("/{id}")
-    public ResponseEntity<String> updateUser(@PathVariable Integer id, @RequestBody UserDTO userDTO) {
-        if (!id.equals(userDTO.getId())) {
-            return ResponseEntity.badRequest().body("El id del path no coincide con el del usuario");
-        }
-        userService.saveOrReplace(fromDTO(userDTO));
-        return ResponseEntity.ok("Usuario actualizado correctamente");
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Integer id) {
-        userService.deleteById(id);
-        return ResponseEntity.ok("Usuario eliminado correctamente");
-    }
-
-    // Método auxiliar para convertir UserDTO a User (ajusta según tus necesidades)
+     // ── Metodo Auxiliar Para Convertir Userdto A User ───────────────────────────────
     private User fromDTO(UserDTO dto) {
         return User.builder()
                 .id(dto.getId())
