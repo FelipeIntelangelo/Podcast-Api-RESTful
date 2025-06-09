@@ -33,6 +33,8 @@ public class Episode {
 
     private Integer views;
 
+    private Double averageRating;
+
     private Integer season;
 
     private Integer chapter;
@@ -54,5 +56,4 @@ public class Episode {
     @OneToMany(mappedBy = "episode")
     private List<Commentary> commentaries;
 
-    // getters y setters
 }

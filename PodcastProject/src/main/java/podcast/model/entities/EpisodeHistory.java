@@ -19,8 +19,6 @@ public class EpisodeHistory {
     private Integer id;
 
     private LocalDateTime listenedAt;
-    private Integer progress; // Progress in seconds
-    private Boolean completed;
 
     @Embedded
     private Rating rating;

@@ -1,21 +1,30 @@
 package podcast.model.services;
 
+import podcast.model.entities.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Podcast;
+import podcast.model.entities.User;
 import podcast.model.entities.dto.PodcastDTO;
 import podcast.model.entities.enums.Category;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IPodcastRepository;
+import podcast.model.repositories.interfaces.IUserRepository;
 
 import java.util.List;
 
 @Service
 public class PodcastService {
-    @Autowired
-    IPodcastRepository podcastRepository;
 
+    private final IPodcastRepository podcastRepository;
+    private final IUserRepository userRepository;
+
+    @Autowired
+    public PodcastService(IPodcastRepository podcastRepository, IUserRepository userRepository) {
+        this.podcastRepository = podcastRepository;
+        this.userRepository = userRepository;
+    }
 
     public void save(Podcast podcast) {
         podcastRepository.findAll().stream()
@@ -24,6 +33,11 @@ public class PodcastService {
                 .ifPresent(podcastpvt -> {
                     throw new AlreadyCreatedException("Podcast with name " + podcast.getTitle() + " already exists");
                 });
+
+        User user = podcast.getUser();
+        user.getCredential().getRoles().add(Role.ROLE_CREATOR);
+        userRepository.save(user);
+
         podcastRepository.save(podcast);
     }
 
@@ -60,6 +74,14 @@ public class PodcastService {
     public Podcast getPodcastById(Long podcastId) {
         return podcastRepository.findById(podcastId).orElseThrow( () ->
                 new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
+    }
+
+    public List<Podcast> getByUsername(String username) {
+        List<Podcast> podcasts = podcastRepository.findByUser_Credential_Username(username);
+        if (podcasts.isEmpty()) {
+            throw new PodcastNotFoundException("No podcasts found for user " + username);
+        }
+        return podcasts;
     }
 
 

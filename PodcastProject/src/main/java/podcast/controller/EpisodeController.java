@@ -4,11 +4,15 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import podcast.model.entities.Episode;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.EpisodeNotFoundException;
+import podcast.model.services.EpisodeHistoryService;
 import podcast.model.services.EpisodeService;
 
 import java.util.List;
@@ -18,8 +22,14 @@ import java.util.List;
 public class EpisodeController {
 
     //DEPENDENCIES
+    private final EpisodeService episodeService;
+    private final EpisodeHistoryService episodeHistoryService;
+
     @Autowired
-    private EpisodeService episodeService;
+    public EpisodeController(EpisodeService episodeService, EpisodeHistoryService episodeHistoryService) {
+        this.episodeService = episodeService;
+        this.episodeHistoryService = episodeHistoryService;
+    }
 
     //HANDLERS
     @ExceptionHandler(EpisodeNotFoundException.class)
@@ -76,6 +86,15 @@ public class EpisodeController {
         }
         episodeService.update(episode);
         return ResponseEntity.ok("Episode updated successfully");
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_CREATOR')")
+    @PutMapping("/{episodeId}/rate")
+    public ResponseEntity<String> rateEpisode(@PathVariable("episodeId") Long episodeId,
+                                              @RequestParam("rating") Long rating,
+                                              @AuthenticationPrincipal UserDetails userDetails) {
+        episodeHistoryService.rateEpisode(episodeId, rating, userDetails.getUsername());
+        return ResponseEntity.ok("Episode rated successfully");
     }
 
     //DELETE MAPPINGS

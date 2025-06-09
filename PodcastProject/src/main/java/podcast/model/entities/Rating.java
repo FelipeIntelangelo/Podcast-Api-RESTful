@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Embeddable
 public class Rating {
 
-    private Double rating; // Valoración (1-5) escala 1-10
+    private Long rating; // Valoración (1-5) escala 1-10
     private String comment; // Comentario opcional
     private LocalDateTime ratedAt; // Fecha de valoración
 
