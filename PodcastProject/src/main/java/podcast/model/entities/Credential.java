@@ -35,4 +35,5 @@ public class Credential {
     private Set<Role> roles;
 
     private LocalDateTime createdAt;
+    private String resetToken;
 }

@@ -27,7 +27,7 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @NotBlank(message = "El nombre es obligatorio")
     @Size(max = 20, message = "El nombre no puede tener más de 20 caracteres")

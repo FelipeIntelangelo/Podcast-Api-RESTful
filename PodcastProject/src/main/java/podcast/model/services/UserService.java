@@ -1,6 +1,7 @@
  package podcast.model.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.User;
 import podcast.model.entities.enums.Role;
@@ -18,7 +19,7 @@ public class UserService {
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(IUserRepository userRepository, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+    public UserService(IUserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
