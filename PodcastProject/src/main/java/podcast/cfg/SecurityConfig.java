@@ -58,7 +58,9 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, //Agregar todos los GET que se permitan sin autenticación
                                 "podcastUTN/v1/podcasts/",
-                                "podcastUTN/v1/podcasts/{podcastId}")
+                                "podcastUTN/v1/podcasts/{podcastId}",
+                                "podcastUTN/v1/episodes/{episodeId}",
+                                "podcastUTN/v1/episodes/")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

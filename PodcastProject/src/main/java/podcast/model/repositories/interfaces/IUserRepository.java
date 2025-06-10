@@ -19,4 +19,5 @@ public interface IUserRepository extends JpaRepository <User, Long> {
     boolean existsByCredentialUsername(String username);
 
     boolean existsByCredentialResetToken(String resetToken);
+
 }

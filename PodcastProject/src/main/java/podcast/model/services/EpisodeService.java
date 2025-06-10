@@ -2,11 +2,14 @@ package podcast.model.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
 import podcast.model.exceptions.EpisodeNotFoundException;
 import podcast.model.exceptions.PodcastNotFoundException;
+import podcast.model.repositories.interfaces.IEpisodeHistoryRepository;
 import podcast.model.repositories.interfaces.IEpisodeRepository;
 import podcast.model.repositories.interfaces.IPodcastRepository;
+import podcast.model.repositories.interfaces.IUserRepository;
 
 import java.util.List;
 
@@ -15,11 +18,18 @@ public class EpisodeService {
 
 private final IEpisodeRepository episodeRepository;
 private final IPodcastRepository podcastRepository;
+private final IEpisodeHistoryRepository episodeHistoryRepository;
+private final IUserRepository userRepository;
 
     @Autowired
-    public EpisodeService(IEpisodeRepository episodeRepository, IPodcastRepository podcastRepository) {
+    public EpisodeService(IEpisodeRepository episodeRepository,
+                          IPodcastRepository podcastRepository,
+                          IEpisodeHistoryRepository episodeHistoryRepository,
+                          IUserRepository userRepository) {
         this.episodeRepository = episodeRepository;
         this.podcastRepository = podcastRepository;
+        this.episodeHistoryRepository = episodeHistoryRepository;
+        this.userRepository = userRepository;
     }
 
     // SAVE
@@ -101,5 +111,20 @@ private final IPodcastRepository podcastRepository;
             }
         }
         return filtered;
+    }
+
+    public void commentEpisode(Long episodeId, String comment, String username) {
+        episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, Long.valueOf(username))
+                .orElseThrow(() -> new EpisodeNotFoundException("Episode not viewed for: " + episodeId + " and user ID: " + username));
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new EpisodeNotFoundException("Episode not found for ID: " + episodeId));
+        Commentary commentary = Commentary.builder()
+                .content(comment)
+                .user(userRepository.findByCredentialUsername(username)
+                        .orElseThrow(() -> new EpisodeNotFoundException("User not found with username: " + username)))
+                .episode(episode)
+                .build();
+        episode.getCommentaries().add(commentary);
+        episodeRepository.save(episode);
     }
 }

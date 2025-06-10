@@ -73,6 +73,7 @@ public class EpisodeController {
         return ResponseEntity.ok(episodePivot);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{episodeId}/play")
     public ResponseEntity<String> playEpisode(@PathVariable("episodeId") Long episodeId,
                                               @AuthenticationPrincipal UserDetails userDetails) {
@@ -89,6 +90,24 @@ public class EpisodeController {
         return ResponseEntity.ok("Episode saved successfully");
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{episodeId}/rate")
+    public ResponseEntity<String> rateEpisode(@PathVariable("episodeId") Long episodeId,
+                                              @RequestParam("rating") Long rating,
+                                              @AuthenticationPrincipal UserDetails userDetails) {
+        episodeHistoryService.rateEpisode(episodeId, rating, userDetails.getUsername());
+        return ResponseEntity.ok("Episode rated successfully");
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{episodeId}/comment")
+    public ResponseEntity<String> commentEpisode(@PathVariable("episodeId") Long episodeId,
+                                                 @RequestParam("comment") String comment,
+                                                 @AuthenticationPrincipal UserDetails userDetails) {
+        episodeService.commentEpisode(episodeId, comment, userDetails.getUsername());
+        return ResponseEntity.ok("Comment added successfully");
+    }
+
     @PreAuthorize( "hasRole('ROLE_CREATOR') or hasRole('ROLE_ADMIN')")
     @PutMapping("/{episodeId}")
     public ResponseEntity<String> update(@PathVariable("episodeId") Long episodeId, @RequestBody @Valid Episode episode) {
@@ -97,15 +116,6 @@ public class EpisodeController {
         }
         episodeService.update(episode);
         return ResponseEntity.ok("Episode updated successfully");
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @PutMapping("/{episodeId}/rate")
-    public ResponseEntity<String> rateEpisode(@PathVariable("episodeId") Long episodeId,
-                                              @RequestParam("rating") Long rating,
-                                              @AuthenticationPrincipal UserDetails userDetails) {
-        episodeHistoryService.rateEpisode(episodeId, rating, userDetails.getUsername());
-        return ResponseEntity.ok("Episode rated successfully");
     }
 
     //DELETE MAPPINGS
