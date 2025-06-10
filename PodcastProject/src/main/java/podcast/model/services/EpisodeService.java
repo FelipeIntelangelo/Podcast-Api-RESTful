@@ -107,7 +107,8 @@ private final IUserRepository userRepository;
         Episode episode = episodeRepository.findById(episodeId).orElseThrow(() ->
                 new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
         return episode.getAudioPath();
-      
+    }
+
     public Episode getEpisodeByTitle(String title) {
         return episodeRepository.findByTitleIgnoreCase(title).stream()
                 .findFirst()
@@ -156,6 +157,7 @@ private final IUserRepository userRepository;
                 .build();
         episode.getCommentaries().add(commentary);
         episodeRepository.save(episode);
+    }
 
     public List<Episode> getEpisodesByMostViews() {
         if (episodeRepository.findAll().isEmpty()) {
