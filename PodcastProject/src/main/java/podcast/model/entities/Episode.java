@@ -57,6 +57,7 @@ public class Episode {
     private Podcast podcast;
 
     @OneToMany(mappedBy = "episode")
+    @JsonIgnoreProperties("episodes")
     private List<Commentary> commentaries;
 
     public EpisodeDTO toDTO() {

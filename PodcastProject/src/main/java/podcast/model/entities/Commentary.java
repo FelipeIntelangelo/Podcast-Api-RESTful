@@ -1,4 +1,5 @@
 package podcast.model.entities;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,7 @@ private User user;
 
 @ManyToOne
 @JoinColumn(name = "episode_id", nullable = false)
+@JsonIgnoreProperties("commentaries")
 private Episode episode;
 
 @Override
