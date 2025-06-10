@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Episode;
 import podcast.model.entities.Podcast;
+import podcast.model.exceptions.ChapterOrSeasonInvalidException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IEpisodeRepository;
 import podcast.model.repositories.interfaces.IPodcastRepository;
@@ -23,15 +24,49 @@ private final IPodcastRepository podcastRepository;
     }
 
     // SAVE
+//    public void save(Episode episode) {
+//        podcastRepository.findById(episode.getPodcast().getId()).ifPresentOrElse(
+//                existingPodcast -> {
+//                    long cantidad = existingPodcast.getEpisodes().stream()
+//                            .filter(p -> p.getTitle().equalsIgnoreCase(episode.getTitle()))
+//                            .count();
+//                    if (cantidad > 0) {
+//                        throw new IllegalArgumentException("Ya existe un episodio con el título " + episode.getTitle() + " en este podcast");
+//                    }
+//                    episodeRepository.save(episode);
+//                    existingPodcast.getEpisodes().add(episode);
+//                    podcastRepository.save(existingPodcast);
+//                },
+//                () -> {
+//                    throw new PodcastNotFoundException("Podcast with name " + episode.getPodcast().getTitle() + " not found");
+//                }
+//        );
+//
+//    }
+
     public void save(Episode episode) {
         podcastRepository.findById(episode.getPodcast().getId()).ifPresentOrElse(
                 existingPodcast -> {
+                    // VALIDA QUE NO EXISTA UN EPISODIO CON EL MISMO TÍTULO
                     long cantidad = existingPodcast.getEpisodes().stream()
                             .filter(p -> p.getTitle().equalsIgnoreCase(episode.getTitle()))
                             .count();
                     if (cantidad > 0) {
-                        throw new IllegalArgumentException("Ya existe un episodio con el título " + episode.getTitle() + " en este podcast");
+                        throw new IllegalArgumentException("The episode with the title " + episode.getTitle() + " already exists");
                     }
+                    // BUSCA ULTIMO EPISODIO POR FECHA Y VALIDA SEASON Y CHAPTER
+                    existingPodcast.getEpisodes().stream()
+                            .max((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt()))
+                            .ifPresent(ultimo -> {
+                                if  (episode.getSeason() < ultimo.getSeason() ||
+                                    (episode.getSeason().equals(ultimo.getSeason()) && episode.getChapter() <= ultimo.getChapter())) {
+                                    throw new ChapterOrSeasonInvalidException("The episode must have a season and/or chapter greater than the last one (" +
+                                            "Season: " + ultimo.getSeason() + ", Chapter: " + ultimo.getChapter() + ")");
+                                }
+                                if (episode.getSeason() > ultimo.getSeason() && episode.getChapter() != 1) {
+                                    throw new ChapterOrSeasonInvalidException("If the season is greater, the chapter must be 1");
+                                }
+                            });
                     episodeRepository.save(episode);
                     existingPodcast.getEpisodes().add(episode);
                     podcastRepository.save(existingPodcast);
@@ -40,7 +75,6 @@ private final IPodcastRepository podcastRepository;
                     throw new PodcastNotFoundException("Podcast with name " + episode.getPodcast().getTitle() + " not found");
                 }
         );
-
     }
 
     // UPDATE
