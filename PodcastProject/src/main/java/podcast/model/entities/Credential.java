@@ -35,5 +35,7 @@ public class Credential {
     @ElementCollection(targetClass = Role.class)
     private Set<Role> roles;
 
+    private String resetToken;
+
     private LocalDateTime createdAt;
 }
