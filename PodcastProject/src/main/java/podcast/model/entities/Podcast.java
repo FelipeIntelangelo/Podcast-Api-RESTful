@@ -2,6 +2,8 @@ package podcast.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import podcast.model.entities.enums.Category;
 import podcast.model.entities.dto.PodcastDTO;
@@ -24,12 +26,24 @@ public class Podcast {
     private Long id;
 
     @Column(nullable = false)
+    @NotBlank
+    @Size(min = 1, max = 100, message = "Title must be less than 100 characters, and not blank")
     private String title;
 
+    @NotBlank
+    @Size(min = 1, max = 500, message = "Description must be less than 500 characters, and not blank")
     private String description;
-    private String coverImageUrl;
+
+    @Column(name = "image_url")
+    private String ImageUrl;
+
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @ManyToOne

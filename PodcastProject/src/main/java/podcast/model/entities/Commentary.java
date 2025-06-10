@@ -1,6 +1,10 @@
 package podcast.model.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -20,6 +24,8 @@ public class Commentary {
 private Integer id;
 
 @Column(nullable = false, length = 1000)
+@NotBlank
+@Size(min = 1, max = 1000, message = "El contenido del comentario debe tener entre 1 y 1000 caracteres")
 private String content;
 
 @Column(nullable = false)

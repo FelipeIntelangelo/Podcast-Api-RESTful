@@ -2,7 +2,8 @@
 package podcast.model.entities;
 
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.JoinColumn;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,8 +17,9 @@ import java.time.LocalDateTime;
 @Embeddable
 public class Rating {
 
-    private Long rating; // Valoración (1-5) escala 1-10
-    private String comment; // Comentario opcional
+    @Min(1)
+    @Max(10)
+    private Long rating; //  escala 1-10
     private LocalDateTime ratedAt; // Fecha de valoración
 
 }

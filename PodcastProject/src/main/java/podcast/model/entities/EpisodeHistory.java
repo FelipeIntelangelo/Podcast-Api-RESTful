@@ -19,7 +19,7 @@ public class EpisodeHistory {
     private Long id;
 
     private LocalDateTime listenedAt;
-
+    
     @Embedded
     private Rating rating;
 
