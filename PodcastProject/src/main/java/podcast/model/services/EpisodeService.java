@@ -3,7 +3,7 @@ package podcast.model.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Episode;
-import podcast.model.entities.Podcast;
+import podcast.model.exceptions.EpisodeNotFoundException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IEpisodeRepository;
 import podcast.model.repositories.interfaces.IPodcastRepository;
@@ -47,7 +47,7 @@ private final IPodcastRepository podcastRepository;
     public void update(Episode episode) {
 
         if (!episodeRepository.existsById(Long.valueOf(episode.getId()))) {
-            throw new IllegalArgumentException("Episode with ID " + episode.getId() + " not found");
+            throw new EpisodeNotFoundException("Episode with ID " + episode.getId() + " not found");
         }
         episodeRepository.save(episode);
     }
@@ -55,7 +55,7 @@ private final IPodcastRepository podcastRepository;
     // DELETE
     public void deleteById(Long episodeId) {
         if (!episodeRepository.existsById(episodeId)) {
-            throw new IllegalArgumentException("Episode with ID " + episodeId + " not found");
+            throw new EpisodeNotFoundException("Episode with ID " + episodeId + " not found");
         }
         episodeRepository.deleteById(episodeId);
     }
@@ -72,25 +72,16 @@ private final IPodcastRepository podcastRepository;
     }
 
     // MOSTRAR - GETS
-    public List<Episode> getAllEpisodes() {
-        List<Episode> episodes = episodeRepository.findAll();
-        if (episodes.isEmpty()) {
-            throw new IllegalArgumentException("No episodes found");
-        }
-        return episodes;
-    }
 
     public Episode getEpisodeById(Long episodeId) {
         return episodeRepository.findById(episodeId).orElseThrow(() ->
-                new IllegalArgumentException("Episode with ID " + episodeId + " not found"));
+                new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
     }
 
-    public List<Episode> getEpisodesByPodcastTitle(String podcastTitle) {
-        Podcast podcast = podcastRepository.findAll().stream()
-                .filter(p -> p.getTitle().equalsIgnoreCase(podcastTitle))
-                .findFirst()
-                .orElseThrow(() -> new PodcastNotFoundException("Podcast with title " + podcastTitle + " not found"));
-        return podcast.getEpisodes();
+    public String getAudioUrl(Long episodeId) {
+        Episode episode = episodeRepository.findById(episodeId).orElseThrow(() ->
+                new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
+        return episode.getAudioPath();
     }
 
     public List<Episode> getAllFiltered(String title, Long podcastId) {

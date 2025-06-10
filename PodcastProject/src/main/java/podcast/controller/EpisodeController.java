@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import podcast.model.entities.Episode;
+import podcast.model.entities.dto.EpisodeDTO;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.EpisodeNotFoundException;
 import podcast.model.services.EpisodeHistoryService;
@@ -58,12 +59,12 @@ public class EpisodeController {
 
     //GET MAPPINGS
     @GetMapping
-    public ResponseEntity<List<Episode>> getAll(
+    public ResponseEntity<List<EpisodeDTO>> getAll(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Long podcastId
     ) {
         List<Episode> episodes = episodeService.getAllFiltered(title, podcastId);
-        return ResponseEntity.ok(episodes);
+        return ResponseEntity.ok(episodes.stream().map(Episode::toDTO).toList());
     }
 
     @GetMapping("/{episodeId}")
@@ -72,13 +73,23 @@ public class EpisodeController {
         return ResponseEntity.ok(episodePivot);
     }
 
+    @GetMapping("/{episodeId}/play")
+    public ResponseEntity<String> playEpisode(@PathVariable("episodeId") Long episodeId,
+                                              @AuthenticationPrincipal UserDetails userDetails) {
+        episodeHistoryService.registerPlay(episodeId,userDetails.getUsername());
+        String audioUrl = episodeService.getAudioUrl(episodeId);
+        return ResponseEntity.ok(audioUrl);
+    }
+
     //POST - PUT MAPPINGS
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<String> save(@RequestBody @Valid Episode episode){
         episodeService.save(episode);
         return ResponseEntity.ok("Episode saved successfully");
     }
 
+    @PreAuthorize( "hasRole('ROLE_CREATOR') or hasRole('ROLE_ADMIN')")
     @PutMapping("/{episodeId}")
     public ResponseEntity<String> update(@PathVariable("episodeId") Long episodeId, @RequestBody @Valid Episode episode) {
         if (!episodeId.equals(episode.getId())) {
@@ -88,7 +99,7 @@ public class EpisodeController {
         return ResponseEntity.ok("Episode updated successfully");
     }
 
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_CREATOR')")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/{episodeId}/rate")
     public ResponseEntity<String> rateEpisode(@PathVariable("episodeId") Long episodeId,
                                               @RequestParam("rating") Long rating,
@@ -98,19 +109,20 @@ public class EpisodeController {
     }
 
     //DELETE MAPPINGS
+    @PreAuthorize("hasRole('ROLE_CREATOR') or hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{episodeId}")
     public ResponseEntity<String> deleteById(@PathVariable("episodeId") Long episodeId) {
         episodeService.deleteById(episodeId);
         return ResponseEntity.ok("Episode deleted successfully");
     }
 
+    @PreAuthorize("hasRole('ROLE_CREATOR') or hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{title}")
     public ResponseEntity<String> deleteByTitle(@PathVariable("title") String title) {
         episodeService.deleteByTitle(title);
         return ResponseEntity.ok("Episode with title '" + title + "' deleted successfully");
     }
 
-    //END MAPPINGS
 }
 
 

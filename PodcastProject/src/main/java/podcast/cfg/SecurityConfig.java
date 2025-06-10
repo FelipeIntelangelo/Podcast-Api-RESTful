@@ -4,6 +4,7 @@ package podcast.cfg;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -53,12 +54,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/podcast/v1/auth/login").permitAll()
-                        /*
-                        .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                         */
+                        .requestMatchers("/podcast/v1/auth/login")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, //Agregar todos los GET que se permitan sin autenticación
+                                "podcastUTN/v1/podcasts/",
+                                "podcastUTN/v1/podcasts/{podcastId}")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider(userDetailsService))

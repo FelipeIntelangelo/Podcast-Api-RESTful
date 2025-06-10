@@ -3,6 +3,7 @@ package podcast.model.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import podcast.model.entities.dto.EpisodeDTO;
 import podcast.model.entities.helpers.DurationConverter;
 
 import java.time.LocalDateTime;
@@ -35,6 +36,8 @@ public class Episode {
 
     private Double averageRating;
 
+    private String imageUrl;
+
     private Integer season;
 
     private Integer chapter;
@@ -55,5 +58,21 @@ public class Episode {
 
     @OneToMany(mappedBy = "episode")
     private List<Commentary> commentaries;
+
+    public EpisodeDTO toDTO() {
+        return EpisodeDTO.builder()
+                .title(this.title)
+                .description(this.description)
+                .publicationDate(this.publicationDate)
+                .views(this.views)
+                .averageRating(this.averageRating)
+                .season(this.season)
+                .chapter(this.chapter)
+                .audioPath(this.audioPath)
+                .duration(this.duration)
+                .imageUrl(this.getImageUrl())
+                .podcastTitle(this.podcast.getTitle())
+                .build();
+    }
 
 }
