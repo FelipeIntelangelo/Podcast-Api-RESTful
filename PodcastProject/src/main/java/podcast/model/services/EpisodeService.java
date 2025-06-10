@@ -24,26 +24,6 @@ private final IPodcastRepository podcastRepository;
     }
 
     // SAVE
-//    public void save(Episode episode) {
-//        podcastRepository.findById(episode.getPodcast().getId()).ifPresentOrElse(
-//                existingPodcast -> {
-//                    long cantidad = existingPodcast.getEpisodes().stream()
-//                            .filter(p -> p.getTitle().equalsIgnoreCase(episode.getTitle()))
-//                            .count();
-//                    if (cantidad > 0) {
-//                        throw new IllegalArgumentException("Ya existe un episodio con el título " + episode.getTitle() + " en este podcast");
-//                    }
-//                    episodeRepository.save(episode);
-//                    existingPodcast.getEpisodes().add(episode);
-//                    podcastRepository.save(existingPodcast);
-//                },
-//                () -> {
-//                    throw new PodcastNotFoundException("Podcast with name " + episode.getPodcast().getTitle() + " not found");
-//                }
-//        );
-//
-//    }
-
     public void save(Episode episode) {
         podcastRepository.findById(episode.getPodcast().getId()).ifPresentOrElse(
                 existingPodcast -> {
@@ -119,6 +99,13 @@ private final IPodcastRepository podcastRepository;
                 new IllegalArgumentException("Episode with ID " + episodeId + " not found"));
     }
 
+    public Episode getEpisodeByTitle(String title) {
+        return episodeRepository.findByTitleIgnoreCase(title).stream()
+                .findFirst()
+                .orElseThrow(() ->
+                        new PodcastNotFoundException("Episode with title " + title + " not found"));
+    }
+
     public List<Episode> getEpisodesByPodcastTitle(String podcastTitle) {
         Podcast podcast = podcastRepository.findAll().stream()
                 .filter(p -> p.getTitle().equalsIgnoreCase(podcastTitle))
@@ -144,5 +131,12 @@ private final IPodcastRepository podcastRepository;
             }
         }
         return filtered;
+    }
+
+    public List<Episode> getEpisodesByMostViews() {
+        if (episodeRepository.findAll().isEmpty()) {
+            throw new IllegalArgumentException("No episodes found");
+        }
+        return episodeRepository.findAllByOrderByViewsDesc();
     }
 }
