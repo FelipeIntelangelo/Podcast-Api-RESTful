@@ -1,9 +1,15 @@
  package podcast.model.services;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import podcast.model.entities.Credential;
 import podcast.model.entities.User;
+import podcast.model.entities.dto.UpdateUserDTO;
+import podcast.model.entities.dto.UserDTO;
 import podcast.model.entities.enums.Role;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.UserNotFoundException;
@@ -15,8 +21,12 @@ import java.util.List;
 @Service
 public class UserService {
 
+    // ── Inyeccion De Dependencias Necesarias ─────────────────────────────────────────
+
     private final IUserRepository userRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    // ── Constructor ──────────────────────────────────────────────────────────────────
 
     @Autowired
     public UserService(IUserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -24,9 +34,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
+    // ── Logica De Negocio ────────────────────────────────────────────────────────────
 
     public void save(User user) {
         // Verifica que el id sea nulo pq es autoincremental en la bdd
@@ -48,8 +56,75 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public User getUserById(Long id) {
+    public User updateAuthenticatedUser(String username, UpdateUserDTO updates) {
+        User existingUser = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+
+        // Actualiza solo los campos proporcionados y no vacíos
+        if (updates.getNickname() != null && !updates.getNickname().isBlank()) {
+            existingUser.setNickname(updates.getNickname());
+        }
+        if (updates.getProfilePicture() != null && !updates.getProfilePicture().isBlank()) {
+            existingUser.setProfilePicture(updates.getProfilePicture());
+        }
+        if (updates.getBio() != null && !updates.getBio().isBlank()) {
+            existingUser.setBio(updates.getBio());
+        }
+        if (updates.getEmail() != null && !updates.getEmail().isBlank()) {
+            existingUser.getCredential().setEmail(updates.getEmail());
+        }
+        if (updates.getPassword() != null && !updates.getPassword().isBlank()) {
+            existingUser.getCredential().setPassword(passwordEncoder.encode(updates.getPassword()));
+        }
+
+        return userRepository.save(existingUser);
+    }
+
+    public List<UserDTO> getAllUsersAsDTO() {
+        return userRepository.findAll()
+                .stream()
+                .map(User::toDTO)
+                .toList();
+    }
+
+    public List<User> getAllUsersWithCredentials() {
+        return userRepository.findAll();
+    }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
+    public User getAuthenticatedUser(String username) {
+        return userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+    }
+
+    public UserDTO getUserByIdAsDTO(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
+        return user.toDTO();
+    }
+
+    public User getUserWithCredentialsById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
+    }
+
+    public void deleteAuthenticatedUser(String username) {
+        User user = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+        userRepository.delete(user);
+    }
+
+    public UserDTO getUserByNicknameAsDTO(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nickname: " + nickname));
+        return user.toDTO();
+    }
+
+    public User getUserWithCredentialsByNickname(String nickname) {
+        return userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nickname: " + nickname));
     }
 }

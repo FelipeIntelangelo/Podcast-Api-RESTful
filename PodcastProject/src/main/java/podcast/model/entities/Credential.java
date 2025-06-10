@@ -2,7 +2,10 @@ package podcast.model.entities;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import podcast.model.entities.enums.Role;
 import java.time.LocalDateTime;
@@ -16,7 +19,6 @@ import java.util.Set;
 public class Credential {
 
     // ── Atributos ────────────────────────────────────────────────────────────────────
-
     @NotBlank(message = "El email es obligatorio")
     @Email(message = "El email debe ser válido")
     private String email;
@@ -30,10 +32,8 @@ public class Credential {
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
 
-    @NotEmpty(message = "Debe tener al menos un rol asignado")
     @ElementCollection(targetClass = Role.class)
     private Set<Role> roles;
 
     private LocalDateTime createdAt;
-    private String resetToken;
 }
