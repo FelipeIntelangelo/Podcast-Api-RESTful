@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
 import podcast.model.exceptions.EpisodeNotFoundException;
-import podcast.model.entities.Podcast;
 import podcast.model.exceptions.ChapterOrSeasonInvalidException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IEpisodeHistoryRepository;
@@ -109,20 +108,7 @@ private final IUserRepository userRepository;
         return episode.getAudioPath();
     }
 
-    public Episode getEpisodeByTitle(String title) {
-        return episodeRepository.findByTitleIgnoreCase(title).stream()
-                .findFirst()
-                .orElseThrow(() ->
-                        new PodcastNotFoundException("Episode with title " + title + " not found"));
-    }
 
-    public List<Episode> getEpisodesByPodcastTitle(String podcastTitle) {
-        Podcast podcast = podcastRepository.findAll().stream()
-                .filter(p -> p.getTitle().equalsIgnoreCase(podcastTitle))
-                .findFirst()
-                .orElseThrow(() -> new PodcastNotFoundException("Podcast with title " + podcastTitle + " not found"));
-        return podcast.getEpisodes();
-    }
 
     public List<Episode> getAllFiltered(String title, Long podcastId) {
         List<Episode> filtered;
@@ -164,6 +150,5 @@ private final IUserRepository userRepository;
             throw new IllegalArgumentException("No episodes found");
         }
         return episodeRepository.findAllByOrderByViewsDesc();
-
     }
 }
