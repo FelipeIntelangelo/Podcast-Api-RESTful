@@ -6,8 +6,8 @@ Una API RESTful para gestionar una plataforma de podcasts. Permite a los usuario
 
 ## 🚀 Tecnologías
 
-- **Lenguaje:** Node.js / Python / Java (dependiendo del stack que uses)
-- **Base de datos:** MySQL / MariaDB (basado en el diagrama)
+- **Lenguaje:** Java
+- **Base de datos:** MySQL 
 - **ORM recomendado:** Sequelize / SQLAlchemy / Hibernate
 
 ---
@@ -20,7 +20,7 @@ Contiene la información básica del usuario.
 - `name`, `last_name`, `nickname`, `email`, `username`
 - `bio`, `profile_picture`
 - `password` (encriptado)
-- `reset_token` (para recuperación de cuenta)
+- `reset_token` 
 
 ### 🗂 `podcasts`
 Representa cada podcast creado por un usuario.
