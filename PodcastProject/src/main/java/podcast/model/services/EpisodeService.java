@@ -2,12 +2,16 @@ package podcast.model.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
+import podcast.model.exceptions.EpisodeNotFoundException;
 import podcast.model.entities.Podcast;
 import podcast.model.exceptions.ChapterOrSeasonInvalidException;
 import podcast.model.exceptions.PodcastNotFoundException;
+import podcast.model.repositories.interfaces.IEpisodeHistoryRepository;
 import podcast.model.repositories.interfaces.IEpisodeRepository;
 import podcast.model.repositories.interfaces.IPodcastRepository;
+import podcast.model.repositories.interfaces.IUserRepository;
 
 import java.util.List;
 
@@ -16,11 +20,18 @@ public class EpisodeService {
 
 private final IEpisodeRepository episodeRepository;
 private final IPodcastRepository podcastRepository;
+private final IEpisodeHistoryRepository episodeHistoryRepository;
+private final IUserRepository userRepository;
 
     @Autowired
-    public EpisodeService(IEpisodeRepository episodeRepository, IPodcastRepository podcastRepository) {
+    public EpisodeService(IEpisodeRepository episodeRepository,
+                          IPodcastRepository podcastRepository,
+                          IEpisodeHistoryRepository episodeHistoryRepository,
+                          IUserRepository userRepository) {
         this.episodeRepository = episodeRepository;
         this.podcastRepository = podcastRepository;
+        this.episodeHistoryRepository = episodeHistoryRepository;
+        this.userRepository = userRepository;
     }
 
     // SAVE
@@ -61,7 +72,7 @@ private final IPodcastRepository podcastRepository;
     public void update(Episode episode) {
 
         if (!episodeRepository.existsById(Long.valueOf(episode.getId()))) {
-            throw new IllegalArgumentException("Episode with ID " + episode.getId() + " not found");
+            throw new EpisodeNotFoundException("Episode with ID " + episode.getId() + " not found");
         }
         episodeRepository.save(episode);
     }
@@ -69,7 +80,7 @@ private final IPodcastRepository podcastRepository;
     // DELETE
     public void deleteById(Long episodeId) {
         if (!episodeRepository.existsById(episodeId)) {
-            throw new IllegalArgumentException("Episode with ID " + episodeId + " not found");
+            throw new EpisodeNotFoundException("Episode with ID " + episodeId + " not found");
         }
         episodeRepository.deleteById(episodeId);
     }
@@ -86,19 +97,17 @@ private final IPodcastRepository podcastRepository;
     }
 
     // MOSTRAR - GETS
-    public List<Episode> getAllEpisodes() {
-        List<Episode> episodes = episodeRepository.findAll();
-        if (episodes.isEmpty()) {
-            throw new IllegalArgumentException("No episodes found");
-        }
-        return episodes;
-    }
 
     public Episode getEpisodeById(Long episodeId) {
         return episodeRepository.findById(episodeId).orElseThrow(() ->
-                new IllegalArgumentException("Episode with ID " + episodeId + " not found"));
+                new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
     }
 
+    public String getAudioUrl(Long episodeId) {
+        Episode episode = episodeRepository.findById(episodeId).orElseThrow(() ->
+                new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
+        return episode.getAudioPath();
+      
     public Episode getEpisodeByTitle(String title) {
         return episodeRepository.findByTitleIgnoreCase(title).stream()
                 .findFirst()
@@ -133,10 +142,26 @@ private final IPodcastRepository podcastRepository;
         return filtered;
     }
 
+
+    public void commentEpisode(Long episodeId, String comment, String username) {
+        episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, Long.valueOf(username))
+                .orElseThrow(() -> new EpisodeNotFoundException("Episode not viewed for: " + episodeId + " and user ID: " + username));
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new EpisodeNotFoundException("Episode not found for ID: " + episodeId));
+        Commentary commentary = Commentary.builder()
+                .content(comment)
+                .user(userRepository.findByCredentialUsername(username)
+                        .orElseThrow(() -> new EpisodeNotFoundException("User not found with username: " + username)))
+                .episode(episode)
+                .build();
+        episode.getCommentaries().add(commentary);
+        episodeRepository.save(episode);
+
     public List<Episode> getEpisodesByMostViews() {
         if (episodeRepository.findAll().isEmpty()) {
             throw new IllegalArgumentException("No episodes found");
         }
         return episodeRepository.findAllByOrderByViewsDesc();
+
     }
 }

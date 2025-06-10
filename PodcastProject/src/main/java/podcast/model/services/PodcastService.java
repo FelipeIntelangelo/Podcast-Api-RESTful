@@ -12,6 +12,7 @@ import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.repositories.interfaces.IPodcastRepository;
 import podcast.model.repositories.interfaces.IUserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -37,7 +38,7 @@ public class PodcastService {
         User user = podcast.getUser();
         user.getCredential().getRoles().add(Role.ROLE_CREATOR);
         userRepository.save(user);
-
+        podcast.setCreatedAt(LocalDateTime.now());
         podcastRepository.save(podcast);
     }
 
@@ -45,6 +46,7 @@ public class PodcastService {
         if (!podcastRepository.existsById(podcast.getId())) {
             throw new PodcastNotFoundException("Podcast with ID " + podcast.getId() + " not found");
         }
+        podcast.setUpdatedAt(LocalDateTime.now());
         podcastRepository.save(podcast);
     }
 

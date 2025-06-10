@@ -16,10 +16,10 @@ import java.time.LocalDateTime;
 public class EpisodeHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private LocalDateTime listenedAt;
-
+    
     @Embedded
     private Rating rating;
 

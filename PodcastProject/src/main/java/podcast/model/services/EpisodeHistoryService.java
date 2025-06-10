@@ -27,18 +27,13 @@ public class EpisodeHistoryService {
         this.userRepository = userRepository;
     }
 
-    public void saveEpisodeHistory(EpisodeHistory episodeHistory) {
-        episodeHistory.setListenedAt(LocalDateTime.now());
-        episodeHistoryRepository.save(episodeHistory);
-    }
-
     public void rateEpisode(Long episodeId, Long rating, String username) {
-        Long userId = Long.valueOf(userRepository.findByCredentialUsername(username)
+        Long userId = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username))
-                .getId());
+                .getId();
 
         EpisodeHistory episodeHistory = episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, userId)
-                .orElseThrow(() -> new EpisodeNotFoundException("Episode history not found for ID: " + episodeId));
+                .orElseThrow(() -> new EpisodeNotFoundException("Episode history not found for ID: " + episodeId + " and user ID: " + userId));
 
         episodeHistory.getRating().setRating(rating);
         episodeHistory.getRating().setRatedAt(LocalDateTime.now());
@@ -49,6 +44,24 @@ public class EpisodeHistoryService {
         episode.setAverageRating(episodeRepository.findAverageRatingByEpisodeId(episodeId));
         episodeRepository.save(episode);
     }
+
+    public void registerPlay(Long episodeId, String username) {
+        Long userId = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username))
+                .getId();
+
+        EpisodeHistory episodeHistory = episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, userId)
+                .orElseThrow(() -> new EpisodeNotFoundException("Episode history not found for ID: " + episodeId + " and user ID: " + userId));
+
+        episodeHistory.setListenedAt(LocalDateTime.now());
+        episodeHistoryRepository.save(episodeHistory);
+
+        Episode episode = episodeRepository.findById(episodeId) //aumento la view del episodio
+                .orElseThrow(() -> new EpisodeNotFoundException("Episode not found for ID: " + episodeId));
+        episode.setViews(episode.getViews() + 1);
+        episodeRepository.save(episode);
+    }
+
 
 
 }
