@@ -1,18 +1,17 @@
  package podcast.model.services;
 
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import podcast.model.entities.Credential;
+import podcast.model.entities.Podcast;
 import podcast.model.entities.User;
 import podcast.model.entities.dto.UpdateUserDTO;
 import podcast.model.entities.dto.UserDTO;
 import podcast.model.entities.enums.Role;
 import podcast.model.exceptions.AlreadyCreatedException;
+import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.exceptions.UserNotFoundException;
+import podcast.model.repositories.interfaces.IPodcastRepository;
 import podcast.model.repositories.interfaces.IUserRepository;
 
 import java.time.LocalDateTime;
@@ -25,13 +24,15 @@ public class UserService {
 
     private final IUserRepository userRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final IPodcastRepository podcastRepository;
 
     // ── Constructor ──────────────────────────────────────────────────────────────────
 
     @Autowired
-    public UserService(IUserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(IUserRepository userRepository, PasswordEncoder passwordEncoder, IPodcastRepository podcastRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.podcastRepository = podcastRepository;
     }
 
     // ── Logica De Negocio ────────────────────────────────────────────────────────────
@@ -126,5 +127,33 @@ public class UserService {
     public User getUserWithCredentialsByNickname(String nickname) {
         return userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nickname: " + nickname));
+    }
+
+    public void addPodcastToFavorites(String username, Long podcastId) {
+        User user = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+        Podcast podcast = podcastRepository.findById(podcastId)
+                .orElseThrow(() -> new PodcastNotFoundException("Podcast no encontrado con id: " + podcastId));
+
+        if (user.getFavorites().contains(podcast)) {
+            throw new IllegalArgumentException("El podcast ya está en la lista de favoritos");
+        }
+
+        user.getFavorites().add(podcast);
+        userRepository.save(user);
+    }
+
+    public void removePodcastFromFavorites(String username, Long podcastId) {
+        User user = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+        Podcast podcast = podcastRepository.findById(podcastId)
+                .orElseThrow(() -> new PodcastNotFoundException("Podcast no encontrado con id: " + podcastId));
+
+        if (!user.getFavorites().contains(podcast)) {
+            throw new IllegalArgumentException("El podcast no está en la lista de favoritos");
+        }
+
+        user.getFavorites().remove(podcast);
+        userRepository.save(user);
     }
 }
