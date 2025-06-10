@@ -14,6 +14,7 @@ public interface IEpisodeRepository extends JpaRepository<Episode, Long> {
     List<Episode> findByTitleIgnoreCase(String title);
     List<Episode> findByPodcast_IdAndTitleIgnoreCase(Long podcastId, String title);
     void deleteByTitleIgnoreCase(String title);
+    List<Episode> findAllByOrderByViewsDesc();        //LISTA UNA CANTIDAD DETERMINADA List<Episode> findTop15ByOrderByViewsDesc();
 
     @Query(
             value = "SELECT AVG(rating) FROM episode_history WHERE episode_id = :episodeId",
