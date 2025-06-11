@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import podcast.model.entities.enums.Role;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -33,9 +34,16 @@ public class Credential {
     private String password;
 
     @ElementCollection(targetClass = Role.class)
-    private Set<Role> roles;
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
 
     private String resetToken;
 
     private LocalDateTime createdAt;
+
+    public Credential(String email, String username, String password) {
+        this.email = email;
+        this.username = username;
+        this.password = password;
+    }
 }

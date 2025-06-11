@@ -80,6 +80,7 @@ public class UserController {
     public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
         return ResponseEntity.status(500).body(Map.of("error", "Ocurrió un error inesperado: " + ex.getMessage()));
@@ -87,10 +88,12 @@ public class UserController {
 
     // ── Get ──────────────────────────────────────────────────────────────────────────
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")  // Obtiene el usuario autenticado
     public User getAuthenticatedUser(@AuthenticationPrincipal UserDetails userDetails) {
         return userService.getAuthenticatedUser(userDetails.getUsername());
     }
+
 
     @GetMapping("/search/all") // Obtiene todos los usuarios como DTO
     public ResponseEntity<List<UserDTO>> getAllUsers() {

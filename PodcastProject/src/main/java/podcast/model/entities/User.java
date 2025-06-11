@@ -73,6 +73,14 @@ public class User implements UserDetails {
 
     // ── Equals Y Hashcode ────────────────────────────────────────────────────────────
 
+
+    public User(String name, String lastName, String nickname, Credential credential) {
+        this.name = name;
+        this.lastName = lastName;
+        this.nickname = nickname;
+        this.credential = credential;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
