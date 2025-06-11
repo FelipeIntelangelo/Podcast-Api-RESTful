@@ -58,7 +58,7 @@ public class UserService {
     }
 
     public User updateAuthenticatedUser(String username, UpdateUserDTO updates) {
-        User existingUser = userRepository.findByCredentialUsernameFetch(username)
+        User existingUser = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
 
         // Actualiza solo los campos proporcionados y no vacíos
@@ -97,7 +97,7 @@ public class UserService {
     }
 
     public User getAuthenticatedUser(String username) {
-        return userRepository.findByCredentialUsernameFetch(username)
+        return userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
     }
 
@@ -113,7 +113,7 @@ public class UserService {
     }
 
     public void deleteAuthenticatedUser(String username) {
-        User user = userRepository.findByCredentialUsernameFetch(username)
+        User user = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
         userRepository.delete(user);
     }
@@ -130,7 +130,7 @@ public class UserService {
     }
 
     public void addPodcastToFavorites(String username, Long podcastId) {
-        User user = userRepository.findByCredentialUsernameFetch(username)
+        User user = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
         Podcast podcast = podcastRepository.findById(podcastId)
                 .orElseThrow(() -> new PodcastNotFoundException("Podcast no encontrado con id: " + podcastId));
@@ -144,7 +144,7 @@ public class UserService {
     }
 
     public void removePodcastFromFavorites(String username, Long podcastId) {
-        User user = userRepository.findByCredentialUsernameFetch(username)
+        User user = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
         Podcast podcast = podcastRepository.findById(podcastId)
                 .orElseThrow(() -> new PodcastNotFoundException("Podcast no encontrado con id: " + podcastId));
