@@ -9,7 +9,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
+import podcast.model.entities.dto.CommentaryDTO;
 import podcast.model.entities.dto.EpisodeDTO;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.EpisodeNotFoundException;
@@ -81,6 +83,13 @@ public class EpisodeController {
         String audioUrl = episodeService.getAudioUrl(episodeId);
         return ResponseEntity.ok(audioUrl);
     }
+
+    @GetMapping("/{episodeId}/commentaries")
+    public ResponseEntity<List<CommentaryDTO>> getComments(@PathVariable("episodeId") Long episodeId) {
+        List<Commentary> comments = episodeService.getComments(episodeId);
+        return ResponseEntity.ok(comments.stream().map(Commentary::toDTO).toList());
+    }
+
 
     //POST - PUT MAPPINGS
     @PreAuthorize("isAuthenticated()")

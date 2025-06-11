@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
+import podcast.model.exceptions.CommentaryNotFoundException;
 import podcast.model.exceptions.EpisodeNotFoundException;
 import podcast.model.exceptions.ChapterOrSeasonInvalidException;
 import podcast.model.exceptions.PodcastNotFoundException;
@@ -150,5 +151,14 @@ private final IUserRepository userRepository;
             throw new IllegalArgumentException("No episodes found");
         }
         return episodeRepository.findAllByOrderByViewsDesc();
+    }
+
+    public List<Commentary> getComments(Long episodeId) {
+    Episode episode = episodeRepository.findById(episodeId)
+            .orElseThrow(() -> new EpisodeNotFoundException("Episode not found for ID: " + episodeId));
+        if (episode.getCommentaries().isEmpty()) {
+            throw new CommentaryNotFoundException("No comments found for episode ID: " + episodeId);
+        }
+        return episode.getCommentaries();
     }
 }

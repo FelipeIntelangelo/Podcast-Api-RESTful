@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import podcast.model.entities.dto.CommentaryDTO;
 
 import java.time.LocalDateTime;
 
@@ -39,6 +40,14 @@ private User user;
 @JoinColumn(name = "episode_id", nullable = false)
 @JsonIgnoreProperties("commentaries")
 private Episode episode;
+
+public CommentaryDTO toDTO() {
+    return CommentaryDTO.builder()
+            .content(content)
+            .createdAt(createdAt)
+            .userName(user.getNickname())
+            .build();
+}
 
 @Override
 public boolean equals(Object o) {
