@@ -68,7 +68,7 @@ public class PodcastService {
         List<PodcastDTO> filteredDTO = filtered.stream()
                 .map(Podcast::toDTO)
                 .toList();
-        if (orderByViews){
+        if (orderByViews != null && orderByViews) {
             filteredDTO.sort((p1, p2) -> Long.compare(p2.getAverageViews(), p1.getAverageViews()));
         }
         return filteredDTO;
