@@ -137,7 +137,7 @@ private final IUserRepository userRepository;
                 .orElseThrow(() -> new EpisodeNotFoundException("Episode not found for ID: " + episodeId));
         Commentary commentary = Commentary.builder()
                 .content(comment)
-                .user(userRepository.findByCredentialUsername(username)
+                .user(userRepository.findByCredentialUsernameFetch(username)
                         .orElseThrow(() -> new EpisodeNotFoundException("User not found with username: " + username)))
                 .episode(episode)
                 .build();

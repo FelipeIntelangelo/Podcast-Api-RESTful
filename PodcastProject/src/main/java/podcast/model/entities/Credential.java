@@ -2,6 +2,7 @@ package podcast.model.entities;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -33,7 +34,7 @@ public class Credential {
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
 
-    @ElementCollection(targetClass = Role.class)
+    @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
 

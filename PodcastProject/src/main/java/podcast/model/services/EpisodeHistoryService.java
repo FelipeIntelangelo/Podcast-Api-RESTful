@@ -28,7 +28,7 @@ public class EpisodeHistoryService {
     }
 
     public void rateEpisode(Long episodeId, Long rating, String username) {
-        Long userId = userRepository.findByCredentialUsername(username)
+        Long userId = userRepository.findByCredentialUsernameFetch(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username))
                 .getId();
 
@@ -46,7 +46,7 @@ public class EpisodeHistoryService {
     }
 
     public void registerPlay(Long episodeId, String username) {
-        Long userId = userRepository.findByCredentialUsername(username)
+        Long userId = userRepository.findByCredentialUsernameFetch(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username))
                 .getId();
 

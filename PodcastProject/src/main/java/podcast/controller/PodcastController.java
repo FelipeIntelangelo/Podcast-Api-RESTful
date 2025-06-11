@@ -68,7 +68,8 @@ public class PodcastController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Boolean orderByViews
     ) {
-        List<PodcastDTO> podcasts = podcastService.getAllFiltered(title, userId, Category.valueOf(category), orderByViews);
+        Category categoryEnum = (category != null) ? Category.valueOf(category) : null;
+        List<PodcastDTO> podcasts = podcastService.getAllFiltered(title, userId, categoryEnum, orderByViews);
         return ResponseEntity.ok(podcasts);
     }
 

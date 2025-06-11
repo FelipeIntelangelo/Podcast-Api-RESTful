@@ -35,7 +35,8 @@ public class PodcastService {
                     throw new AlreadyCreatedException("Podcast with name " + podcast.getTitle() + " already exists");
                 });
 
-        User user = podcast.getUser();
+        User user = userRepository.findById( podcast.getUser().getId())
+                .orElseThrow(() -> new PodcastNotFoundException("User with ID " + podcast.getUser().getId() + " not found"));
         user.getCredential().getRoles().add(Role.ROLE_CREATOR);
         userRepository.save(user);
         podcast.setCreatedAt(LocalDateTime.now());

@@ -16,7 +16,7 @@ import java.util.Date;
 public class JwtUtil {
 
     // Clave secreta para firmar el token. ¡Nunca la subas a GitHub! Mejor usar variables de entorno.
-    private static final String SECRET_KEY = "claveJWT";
+    private static final String SECRET_KEY = "claveSecretaMuySeguraParaFirmarTokensJWT";
 
     /*@Value("${jwt.secret}")
     private String secretKey;*/

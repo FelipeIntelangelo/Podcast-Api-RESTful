@@ -54,18 +54,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/podcast/v1/auth/login")
+                        .requestMatchers("/podcastUTN/v1/auth/login")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, //Agregar todos los GET que se permitan sin autenticación
-                                "podcastUTN/v1/podcasts/",
-                                "podcastUTN/v1/podcasts/{podcastId}",
-                                "podcastUTN/v1/episodes/{episodeId}",
-                                "podcastUTN/v1/episodes/",
-                                "podcastUTN/v1/users/search",
-                                "podcastUTN/v1/users/search/all")
+                                "/podcastUTN/v1/podcasts",
+                                "/podcastUTN/v1/podcasts/{podcastId}",
+                                "/podcastUTN/v1/episodes/{episodeId}",
+                                "/podcastUTN/v1/episodes",
+                                "/podcastUTN/v1/users/search",
+                                "/podcastUTN/v1/users/search/all")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "podcastUTN/v1/users/register")
+                                "/podcastUTN/v1/users/register")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
