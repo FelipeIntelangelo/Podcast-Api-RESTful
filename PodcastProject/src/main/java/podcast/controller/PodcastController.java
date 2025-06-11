@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import podcast.model.entities.Podcast;
 import podcast.model.entities.dto.PodcastDTO;
 import podcast.model.entities.enums.Category;
@@ -52,6 +53,12 @@ public class PodcastController {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String errorMessage = "Invalid value for parameter '" + ex.getName() + "': " + ex.getValue();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
     //END HANDLERS
 
