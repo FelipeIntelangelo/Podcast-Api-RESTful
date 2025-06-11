@@ -13,6 +13,7 @@ import podcast.model.repositories.interfaces.IPodcastRepository;
 import podcast.model.repositories.interfaces.IUserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -65,9 +66,9 @@ public class PodcastService {
         if (filtered.isEmpty()) {
             throw new PodcastNotFoundException("No podcasts found");
         }
-        List<PodcastDTO> filteredDTO = filtered.stream()
+        List<PodcastDTO> filteredDTO = new ArrayList<>(filtered.stream()
                 .map(Podcast::toDTO)
-                .toList();
+                .toList());
         if (orderByViews != null && orderByViews) {
             filteredDTO.sort((p1, p2) -> Long.compare(p2.getAverageViews(), p1.getAverageViews()));
         }
