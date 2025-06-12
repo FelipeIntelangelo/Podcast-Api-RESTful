@@ -96,11 +96,4 @@ public class PodcastService {
         podcastRepository.deleteById(podcastId);
     }
 
-    public void deleteByTitle(String title) {
-        if(!podcastRepository.existsByTitle(title)) {
-            throw new PodcastNotFoundException("Podcast with title " + title + " not found");
-        }
-        podcastRepository.deleteByTitle(title);
-    }
-
 }

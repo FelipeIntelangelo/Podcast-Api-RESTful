@@ -130,13 +130,6 @@ public class PodcastController {
         return ResponseEntity.ok("Podcast deleted successfully");
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
-    @DeleteMapping("/{title}")
-    public ResponseEntity<String> deleteByTitle(@PathVariable("title") String title) {
-        podcastService.deleteByTitle(title);
-        return ResponseEntity.ok("Podcast with title '" + title + "' deleted successfully");
-    }
-
     //END MAPPINGS
 
 }
