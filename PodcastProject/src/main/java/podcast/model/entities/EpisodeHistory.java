@@ -2,6 +2,7 @@ package podcast.model.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import podcast.model.entities.dto.EpisodeHistoryDTO;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +20,7 @@ public class EpisodeHistory {
     private Long id;
 
     private LocalDateTime listenedAt;
-    
+
     @Embedded
     private Rating rating;
 
@@ -31,4 +32,11 @@ public class EpisodeHistory {
     @JoinColumn(name = "episode_id", nullable = false)
     private Episode episode;
 
+    public EpisodeHistoryDTO toDTO() {
+        return EpisodeHistoryDTO.builder()
+                .listenedAt(this.listenedAt)
+                .rating(this.rating)
+                .episode(this.episode.toDTO())
+                .build();
+    }
 }
