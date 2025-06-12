@@ -132,6 +132,9 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody @Valid User user) {
+        if (userService.existsByUsername(user.getUsername())) {
+            throw new AlreadyCreatedException("El usuario con el nombre de usuario ya existe.");
+        }
         userService.save(user);
         return ResponseEntity.ok("Usuario registrado correctamente");
     }

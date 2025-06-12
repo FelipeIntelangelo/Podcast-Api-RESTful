@@ -47,6 +47,10 @@ public class User implements UserDetails {
 
     @NotNull(message = "Las credenciales son obligatorias")
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "email", column = @Column(unique = true)),
+            @AttributeOverride(name = "username", column = @Column(unique = true))
+    })
     private Credential credential;
 
     // ── Atributos Opcionales ─────────────────────────────────────────────────────────

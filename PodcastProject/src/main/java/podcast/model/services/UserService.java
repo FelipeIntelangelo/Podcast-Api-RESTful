@@ -92,6 +92,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByCredentialUsername(username);
+    }
+
     public void addPodcastToFavorites(String username, Long podcastId) {
         User user = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
