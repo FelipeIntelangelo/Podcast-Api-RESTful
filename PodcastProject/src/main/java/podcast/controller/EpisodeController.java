@@ -135,13 +135,6 @@ public class EpisodeController {
         return ResponseEntity.ok("Episode deleted successfully");
     }
 
-    @PreAuthorize("hasRole('ROLE_CREATOR') or hasRole('ROLE_ADMIN')")
-    @DeleteMapping("/{title}")
-    public ResponseEntity<String> deleteByTitle(@PathVariable("title") String title) {
-        episodeService.deleteByTitle(title);
-        return ResponseEntity.ok("Episode with title '" + title + "' deleted successfully");
-    }
-
 }
 
 

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
+import podcast.model.entities.Podcast;
 import podcast.model.exceptions.CommentaryNotFoundException;
 import podcast.model.exceptions.EpisodeNotFoundException;
 import podcast.model.exceptions.ChapterOrSeasonInvalidException;
@@ -79,21 +80,14 @@ private final IUserRepository userRepository;
 
     // DELETE
     public void deleteById(Long episodeId) {
-        if (!episodeRepository.existsById(episodeId)) {
-            throw new EpisodeNotFoundException("Episode with ID " + episodeId + " not found");
+        Episode episode = episodeRepository.findById(episodeId).orElseThrow(() ->
+                new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
+        Podcast podcast = episode.getPodcast();
+        if (podcast != null){
+            podcast.getEpisodes().remove(episode);
+            podcastRepository.save(podcast);
         }
-        episodeRepository.deleteById(episodeId);
-    }
-
-    public void deleteByTitle(String title){
-        // PUEDE HABER MAS DE UN EPISODIO CON EL MISMO TÍTULO ???????
-        List<Episode> episodes = episodeRepository.findByTitleIgnoreCase(title);
-        if (episodes.isEmpty()) {
-            throw new PodcastNotFoundException("Podcast with title " + title + " not found");
-        }
-        for (Episode episode : episodes) {
-            episodeRepository.delete(episode);
-        }
+        episodeRepository.delete(episode);
     }
 
     // MOSTRAR - GETS
