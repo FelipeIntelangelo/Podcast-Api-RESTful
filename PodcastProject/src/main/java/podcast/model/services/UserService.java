@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Podcast;
 import podcast.model.entities.User;
+import podcast.model.entities.dto.PodcastDTO;
 import podcast.model.entities.dto.UpdateUserDTO;
 import podcast.model.entities.dto.UserDTO;
 import podcast.model.entities.enums.Role;
@@ -37,6 +38,40 @@ public class UserService {
 
     // ── Logica De Negocio ────────────────────────────────────────────────────────────
 
+
+    // ── Get ──────────────────────────────────────────────────────────────────────────
+
+    public User getAuthenticatedUser(String username) {
+        return userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+    }
+
+    public List<UserDTO> getAllUsersAsDTO() {
+        return userRepository.findAll()
+                .stream()
+                .map(User::toDTO)
+                .toList();
+    }
+
+    public UserDTO getUserByIdAsDTO(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
+        return user.toDTO();
+    }
+
+    public User getUserWithCredentialsById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
+    }
+
+    public List<PodcastDTO> getFavoritesByUsername(String username) {
+        User user = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+        return user.getFavorites().stream().map(Podcast::toDTO).toList();
+    }
+
+    // ── Post ─────────────────────────────────────────────────────────────────────────
+
     public void save(User user) {
         // Verifica que el id sea nulo pq es autoincremental en la bdd
         if (user.getId() != null) {
@@ -56,6 +91,22 @@ public class UserService {
 
         userRepository.save(user);
     }
+
+    public void addPodcastToFavorites(String username, Long podcastId) {
+        User user = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
+        Podcast podcast = podcastRepository.findById(podcastId)
+                .orElseThrow(() -> new PodcastNotFoundException("Podcast no encontrado con id: " + podcastId));
+
+        if (user.getFavorites().contains(podcast)) {
+            throw new IllegalArgumentException("El podcast ya está en la lista de favoritos");
+        }
+
+        user.getFavorites().add(podcast);
+        userRepository.save(user);
+    }
+
+    // ── Patch ────────────────────────────────────────────────────────────────────────
 
     public User updateAuthenticatedUser(String username, UpdateUserDTO updates) {
         User existingUser = userRepository.findByCredentialUsername(username)
@@ -81,66 +132,18 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-    public List<UserDTO> getAllUsersAsDTO() {
-        return userRepository.findAll()
-                .stream()
-                .map(User::toDTO)
-                .toList();
-    }
-
-    public List<User> getAllUsersWithCredentials() {
-        return userRepository.findAll();
-    }
-
-    public String encodePassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
-    }
-
-    public User getAuthenticatedUser(String username) {
-        return userRepository.findByCredentialUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
-    }
-
-    public UserDTO getUserByIdAsDTO(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
-        return user.toDTO();
-    }
-
-    public User getUserWithCredentialsById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + id));
-    }
+    // ── Delete ───────────────────────────────────────────────────────────────────────
 
     public void deleteAuthenticatedUser(String username) {
         User user = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
-        userRepository.delete(user);
-    }
 
-    public UserDTO getUserByNicknameAsDTO(String nickname) {
-        User user = userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nickname: " + nickname));
-        return user.toDTO();
-    }
-
-    public User getUserWithCredentialsByNickname(String nickname) {
-        return userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nickname: " + nickname));
-    }
-
-    public void addPodcastToFavorites(String username, Long podcastId) {
-        User user = userRepository.findByCredentialUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con username: " + username));
-        Podcast podcast = podcastRepository.findById(podcastId)
-                .orElseThrow(() -> new PodcastNotFoundException("Podcast no encontrado con id: " + podcastId));
-
-        if (user.getFavorites().contains(podcast)) {
-            throw new IllegalArgumentException("El podcast ya está en la lista de favoritos");
+        boolean isOwnerOfPodcasts = podcastRepository.existsByUserId(user.getId());
+        if (isOwnerOfPodcasts) {
+            throw new IllegalArgumentException("No se puede eliminar el usuario porque es dueño de uno o más podcasts.");
         }
 
-        user.getFavorites().add(podcast);
-        userRepository.save(user);
+        userRepository.delete(user);
     }
 
     public void removePodcastFromFavorites(String username, Long podcastId) {

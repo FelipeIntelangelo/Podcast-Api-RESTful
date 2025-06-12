@@ -3,6 +3,7 @@ package podcast.model.repositories.interfaces;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import podcast.model.entities.Podcast;
+import podcast.model.entities.User;
 import podcast.model.entities.enums.Category;
 
 import java.util.List;
@@ -13,4 +14,5 @@ public interface IPodcastRepository extends JpaRepository<Podcast, Long> {
     Boolean existsByTitle(String title);
     void deleteByTitle(String title);
     List<Podcast> findByUser_Credential_Username(String username);
+    boolean existsByUserId(Long id);
 }
