@@ -22,6 +22,7 @@ import podcast.model.entities.dto.CommentaryDTO;
 import podcast.model.entities.dto.EpisodeDTO;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.EpisodeNotFoundException;
+import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.services.EpisodeHistoryService;
 import podcast.model.services.EpisodeService;
 
@@ -58,6 +59,11 @@ public class EpisodeController {
                 .reduce((msg1, msg2) -> msg1 + ", " + msg2)
                 .orElse("Validation error");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
+    @ExceptionHandler(PodcastNotFoundException.class)
+    public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @Operation(
@@ -171,7 +177,7 @@ public class EpisodeController {
             @ApiResponse(responseCode = "401", description = "No autorizado"),
             @ApiResponse(responseCode = "409", description = "Episodio ya existe")
     })
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated")
     @PostMapping
     public ResponseEntity<String> save(
             @Parameter(

@@ -330,7 +330,7 @@ public class UserController {
         @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT faltante o inválido"),
         @ApiResponse(responseCode = "404", description = "Podcast no encontrado")
     })
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated")
     @PostMapping("/favorites/{podcastId}")
     public ResponseEntity<String> addPodcastToFavorites(
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,

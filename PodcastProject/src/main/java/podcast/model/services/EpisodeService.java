@@ -39,13 +39,6 @@ private final IUserRepository userRepository;
     public void save(Episode episode) {
         podcastRepository.findById(episode.getPodcast().getId()).ifPresentOrElse(
                 existingPodcast -> {
-                    // VALIDA QUE NO EXISTA UN EPISODIO CON EL MISMO TÍTULO
-                    long cantidad = existingPodcast.getEpisodes().stream()
-                            .filter(p -> p.getTitle().equalsIgnoreCase(episode.getTitle()))
-                            .count();
-                    if (cantidad > 0) {
-                        throw new IllegalArgumentException("The episode with the title " + episode.getTitle() + " already exists");
-                    }
                     // BUSCA ULTIMO EPISODIO POR FECHA Y VALIDA SEASON Y CHAPTER
                     existingPodcast.getEpisodes().stream()
                             .max((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt()))

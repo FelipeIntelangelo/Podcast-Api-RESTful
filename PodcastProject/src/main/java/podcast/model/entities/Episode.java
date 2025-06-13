@@ -1,11 +1,13 @@
 package podcast.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import podcast.model.entities.dto.EpisodeDTO;
 import podcast.model.entities.helpers.DurationConverter;
+import podcast.model.entities.helpers.DurationFromStringDeserializer;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
@@ -25,42 +27,51 @@ public class Episode {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @NotBlank
-    @Size(min = 3, max = 50, message = "El título debe tener entre 3 y 100 caracteres")
+    @Size(min = 3, max = 50, message = "the title must have between 3 and 50 characters")
     private String title;
 
     @Column(nullable = false, length = 500)
     @NotBlank
-    @Size(min = 5, max = 500, message = "La descripción debe tener entre 5 y 500 caracteres")
+    @Size(min = 5, max = 500, message = "the description must have between 5 and 500 characters")
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime publicationDate;
 
     @PositiveOrZero
     private Integer views;
 
-    @Positive
-    @Max(value = 10, message = "La calificación promedio debe ser entre 1 y 10")
+    @PrePersist
+    protected void onCreate() {
+        this.publicationDate = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.views = 0;
+        this.averageRating = 0.0;
+    }
+
+    @PositiveOrZero
+    @Max(value = 10, message = "the rating must be between 0 and 10")
     private Double averageRating;
 
     private String imageUrl;
 
-    @NotBlank
-    @Min(value = 1, message = "La temporada debe ser al menos 1")
+    @NotNull
+    @Min(value = 1, message = "the season must be at least 1")
     private Integer season;
 
-    @NotBlank
-    @Min(value = 1, message = "El capítulo debe ser al menos 1")
+    @NotNull
+    @Min(value = 1, message = "the chapter must be at least 1")
     private Integer chapter;
 
     @Column(nullable = false)
-    @NotBlank(message = "La ruta del audio es obligatoria")
+    @NotBlank(message = "the path to the audio file cannot be blank")
     private String audioPath;
 
     @Column(nullable = false)
     @Convert(converter = DurationConverter.class)
+    @JsonDeserialize(using = DurationFromStringDeserializer.class)
     private Duration duration;
 
     private LocalDateTime createdAt;
