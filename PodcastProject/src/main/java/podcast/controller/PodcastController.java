@@ -310,13 +310,13 @@ public class PodcastController {
     })
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
     @PatchMapping("/{podcastId}")
-    public ResponseEntity<PodcastDTO> updatePodcast(
+    public ResponseEntity<PodcastUpdateDTO> updatePodcast(
             @Parameter(hidden = true) @PathVariable Long podcastId,
             @RequestBody @Valid PodcastUpdateDTO updates,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Podcast updatedPodcast = podcastService.updatePodcast(podcastId, updates, userDetails);
-        return ResponseEntity.ok(updatedPodcast.toDTO());
+        PodcastUpdateDTO updatedPodcast = podcastService.updatePodcast(podcastId, updates, userDetails);
+        return ResponseEntity.ok(updatedPodcast);
     }
 
     @Operation(

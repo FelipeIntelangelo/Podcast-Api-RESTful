@@ -104,17 +104,13 @@ public class PodcastService {
         User user = userRepository.findByCredentialUsername(username).orElseThrow( () ->
                 new UserNotFoundException("User with username " + username + " not found"));
 
-        if (user.getCredential().getRoles().contains(Role.ROLE_ADMIN)){
-            podcastRepository.deleteById(podcastId);
-            return;
-        }
-        if (!podcast.getUser().getCredential().getUsername().equals(username)) {
-            throw new UnauthorizedException("Podcast with ID " + podcastId + " does not belong to YOU " + username);
+        if (!podcast.getUser().getCredential().getUsername().equals(username) && !user.getCredential().getRoles().contains(Role.ROLE_ADMIN)) {
+            throw new UnauthorizedException("Podcast with ID " + podcastId + " does not belong to YOU" + username + "and you are not an admin");
         }
         podcastRepository.deleteById(podcastId);
     }
 
-    public Podcast updatePodcast(Long podcastId, @Valid PodcastUpdateDTO updates, UserDetails userDetails) {
+    public PodcastUpdateDTO updatePodcast(Long podcastId, @Valid PodcastUpdateDTO updates, UserDetails userDetails) {
         Podcast podcast = podcastRepository.findById(podcastId)
                 .orElseThrow(() -> new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
 
@@ -136,7 +132,7 @@ public class PodcastService {
         if (updates.getCategories() != null && !updates.getCategories().isEmpty()) {
             podcast.getCategories().addAll(updates.getCategories());
         }
-
-        return podcastRepository.save(podcast);
+        podcastRepository.save(podcast);
+        return podcast.toUpdateDTO();
     }
 }

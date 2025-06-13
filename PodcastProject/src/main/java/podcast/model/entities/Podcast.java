@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import podcast.model.entities.dto.PodcastUpdateDTO;
 import podcast.model.entities.enums.Category;
 import podcast.model.entities.dto.PodcastDTO;
 import java.time.LocalDateTime;
@@ -96,6 +97,13 @@ public class Podcast {
     public PodcastDTO toDTO() {
         return new PodcastDTO(this.getId(), this.getTitle(), this.getDescription(), this.getCategories(),
                 calcularViewsPromedio(), calcularRatingPromedio());
+    }
+
+    public PodcastUpdateDTO toUpdateDTO() {
+        return new PodcastUpdateDTO(this.getTitle()
+                , this.getDescription()
+                , this.getImageUrl()
+                , this.getCategories());
     }
 
     @Override
