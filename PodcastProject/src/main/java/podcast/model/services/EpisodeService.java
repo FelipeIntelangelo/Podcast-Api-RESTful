@@ -152,7 +152,6 @@ private final ICommentaryRepository commentaryRepository;
         }
         return filtered;
     }
-
     public void commentEpisode(Long episodeId, String comment, String username) {
         if (comment == null || comment.isBlank()) {
             throw new IllegalArgumentException("Comment cannot be null or blank");
@@ -175,6 +174,7 @@ private final ICommentaryRepository commentaryRepository;
 
         commentaryRepository.save(commentary);
     }
+
 
     public List<Episode> getEpisodesByMostViews() {
         if (episodeRepository.findAll().isEmpty()) {

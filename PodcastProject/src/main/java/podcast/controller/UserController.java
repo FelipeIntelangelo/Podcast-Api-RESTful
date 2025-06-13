@@ -63,6 +63,7 @@ public class UserController {
         this.ratingService = ratingService;
     }
 
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException ex) {
         return ResponseEntity.status(404).body(Map.of("error", ex.getMessage()));
