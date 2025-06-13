@@ -7,8 +7,7 @@ import podcast.model.entities.Podcast;
 import podcast.model.entities.User;
 import podcast.model.entities.dto.PodcastDTO;
 import podcast.model.entities.enums.Category;
-import podcast.model.exceptions.AlreadyCreatedException;
-import podcast.model.exceptions.PodcastNotFoundException;
+import podcast.model.exceptions.*;
 import podcast.model.repositories.interfaces.IPodcastRepository;
 import podcast.model.repositories.interfaces.IUserRepository;
 
@@ -35,12 +34,13 @@ public class PodcastService {
                 .ifPresent(podcastpvt -> {
                     throw new AlreadyCreatedException("Podcast with name " + podcast.getTitle() + " already exists");
                 });
-
-        User user = userRepository.findById( podcast.getUser().getId())
+        if (podcast.getUser() == null || podcast.getUser().getId() == null) {
+            throw new NullUserException("Podcast must have a valid user");
+        }
+        User user = userRepository.findById(podcast.getUser().getId())
                 .orElseThrow(() -> new PodcastNotFoundException("User with ID " + podcast.getUser().getId() + " not found"));
         user.getCredential().getRoles().add(Role.ROLE_CREATOR);
         userRepository.save(user);
-        podcast.setCreatedAt(LocalDateTime.now());
         podcastRepository.save(podcast);
     }
 
@@ -48,7 +48,6 @@ public class PodcastService {
         if (!podcastRepository.existsById(podcast.getId())) {
             throw new PodcastNotFoundException("Podcast with ID " + podcast.getId() + " not found");
         }
-        podcast.setUpdatedAt(LocalDateTime.now());
         podcastRepository.save(podcast);
     }
 
@@ -58,6 +57,7 @@ public class PodcastService {
         if (title == null && userId == null && category == null) {
             filtered = podcastRepository.findAll();
         } else {
+
             filtered = podcastRepository.findByUser_IdOrTitleIgnoreCaseOrCategories(userId, title, category);
             if (filtered.isEmpty()) {
                 filtered = podcastRepository.findAll();
@@ -91,9 +91,21 @@ public class PodcastService {
     }
 
 
-    public void deleteById(Long podcastId) {
+    public void deleteById(Long podcastId, String username) {
+        Podcast podcast = podcastRepository.findById(podcastId)
+                .orElseThrow(() -> new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
         if (!podcastRepository.existsById(podcastId)) {
             throw new PodcastNotFoundException("Podcast with ID " + podcastId + " not found");
+        }
+        User user = userRepository.findByCredentialUsername(username).orElseThrow( () ->
+                new UserNotFoundException("User with username " + username + " not found"));
+
+        if (user.getCredential().getRoles().contains(Role.ROLE_ADMIN)){
+            podcastRepository.deleteById(podcastId);
+            return;
+        }
+        if (!podcast.getUser().getCredential().getUsername().equals(username)) {
+            throw new UnauthorizedException("Podcast with ID " + podcastId + " does not belong to YOU " + username);
         }
         podcastRepository.deleteById(podcastId);
     }

@@ -3,6 +3,7 @@ package podcast.model.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import podcast.model.entities.enums.Category;
@@ -67,7 +68,7 @@ public class Podcast {
     @CollectionTable(name = "CategoriesXPodcast", joinColumns = @JoinColumn(name = "podcast_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "category")
-    @Size(min = 1, message = "Debe ingresar al menos una categoría")
+    @NotEmpty
     private List<Category> categories;
 
 

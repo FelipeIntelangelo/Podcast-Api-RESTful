@@ -22,6 +22,7 @@ import podcast.model.entities.Podcast;
 import podcast.model.entities.dto.PodcastDTO;
 import podcast.model.entities.enums.Category;
 import podcast.model.exceptions.AlreadyCreatedException;
+import podcast.model.exceptions.NullUserException;
 import podcast.model.exceptions.PodcastNotFoundException;
 import podcast.model.exceptions.UnauthorizedException;
 import podcast.model.services.PodcastService;
@@ -67,6 +68,11 @@ public class PodcastController {
     public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String errorMessage = "Invalid value for parameter '" + ex.getName() + "': " + ex.getValue();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
+    @ExceptionHandler(NullUserException.class)
+    public ResponseEntity<String> handleNullUser(NullUserException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @Operation(
@@ -205,7 +211,7 @@ public class PodcastController {
             )
         )
     })
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated")
     @PostMapping
     public ResponseEntity<String> save(
             @Parameter(
@@ -291,8 +297,9 @@ public class PodcastController {
     @DeleteMapping("/{podcastId}")
     public ResponseEntity<String> deleteById(
             @Parameter(description = "ID del podcast a eliminar", required = true, example = "1")
-            @PathVariable("podcastId") Long podcastId) {
-        podcastService.deleteById(podcastId);
+            @PathVariable("podcastId") Long podcastId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        podcastService.deleteById(podcastId, userDetails.getUsername());
         return ResponseEntity.ok("Podcast deleted successfully");
     }
 }
