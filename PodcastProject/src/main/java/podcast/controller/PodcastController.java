@@ -41,6 +41,8 @@ public class PodcastController {
     @Autowired
     private PodcastService podcastService;
 
+//* ===================================================================================================================
+
     @ExceptionHandler(PodcastNotFoundException.class)
     public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
@@ -75,6 +77,8 @@ public class PodcastController {
     public ResponseEntity<String> handleNullUser(NullUserException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Obtener todos los podcasts",
@@ -117,6 +121,8 @@ public class PodcastController {
         return ResponseEntity.ok(podcasts);
     }
 
+//* ===================================================================================================================
+
     @Operation(
         summary = "Obtener podcast por ID",
         description = "Recupera un podcast específico utilizando su identificador único"
@@ -145,6 +151,9 @@ public class PodcastController {
             @PathVariable("podcastId") Long podcastId) {
         return ResponseEntity.ok(podcastService.getPodcastById(podcastId));
     }
+
+//* ===================================================================================================================
+
 
     @Operation(
         summary = "Obtener podcasts del usuario autenticado",
@@ -222,6 +231,7 @@ public class PodcastController {
         return ResponseEntity.ok("Podcast saved successfully");
     }
 
+//* ===================================================================================================================
 
     @Operation(
             summary = "Actualizar un podcast existente",
@@ -265,6 +275,8 @@ public class PodcastController {
         PodcastUpdateDTO updatedPodcast = podcastService.updatePodcast(podcastId, updates, userDetails);
         return ResponseEntity.ok(updatedPodcast);
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Eliminar podcast",

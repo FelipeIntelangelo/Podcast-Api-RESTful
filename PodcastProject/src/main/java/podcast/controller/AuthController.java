@@ -37,6 +37,8 @@ public class AuthController {
     @Autowired
     private UserDetailsService userDetailsService;
 
+// ===================================================================================================================
+
     @Operation(
         summary = "Iniciar sesión",
         description = "Autentica al usuario utilizando sus credenciales (nombre de usuario y contraseña) " +

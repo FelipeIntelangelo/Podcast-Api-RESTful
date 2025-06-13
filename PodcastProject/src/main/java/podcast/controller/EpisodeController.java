@@ -47,6 +47,8 @@ public class EpisodeController {
         this.ratingService = ratingService;
     }
 
+//* ===================================================================================================================
+
     @ExceptionHandler(EpisodeNotFoundException.class)
     public ResponseEntity<String> handleEpisodeNotFound(EpisodeNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
@@ -69,6 +71,11 @@ public class EpisodeController {
                 .reduce((msg1, msg2) -> msg1 + ", " + msg2)
                 .orElse("Validation error");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
+    @ExceptionHandler(ChapterOrSeasonInvalidException.class)
+    public ResponseEntity<String> handleChapterOrSeasonInvalid(ChapterOrSeasonInvalidException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @ExceptionHandler(PodcastNotFoundException.class)
@@ -97,6 +104,8 @@ public class EpisodeController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+//* ===================================================================================================================
+
     @Operation(
             summary = "Obtener todos los episodios",
             description = "Obtiene una lista de episodios en formato DTO con filtros opcionales. Los resultados se devuelven como EpisodeDTO para proteger datos sensibles y optimizar la respuesta."
@@ -121,6 +130,8 @@ public class EpisodeController {
         return ResponseEntity.ok(episodes.stream().map(Episode::toDTO).toList());
     }
 
+//* ===================================================================================================================
+
     @Operation(
             summary = "Obtener episodio por ID",
             description = "Recupera un episodio específico por su identificador único"
@@ -142,6 +153,8 @@ public class EpisodeController {
         Episode episodePivot = episodeService.getEpisodeById(episodeId);
         return ResponseEntity.ok(episodePivot);
     }
+
+//* ===================================================================================================================
 
     @Operation(
             summary = "Reproducir episodio",
@@ -169,6 +182,8 @@ public class EpisodeController {
         return ResponseEntity.ok(audioUrl);
     }
 
+//* ===================================================================================================================
+
     @Operation(
             summary = "Obtener comentarios de un episodio",
             description = "Recupera todos los comentarios asociados a un episodio específico"
@@ -192,13 +207,49 @@ public class EpisodeController {
         return ResponseEntity.ok(comments.stream().map(Commentary::toDTO).toList());
     }
 
-    @Operation(summary = "Obtener promedio de calificación de un episodio")
-    @PreAuthorize("isAuthenticated")
+//* ===================================================================================================================
+
+    @Operation(
+        summary = "Get average rating of an episode",
+        description = "Returns the average rating (as a decimal number) for the specified episode.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Average rating retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "number", format = "double", example = "4.5")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Missing or invalid JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "object", example = "{\"error\": \"Unauthorized\"}")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Episode not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "object", example = "{\"error\": \"Episode not found\"}")
+            )
+        )
+    })
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{episodeId}/average")
-    public ResponseEntity<Double> getAverageRating(@PathVariable Long episodeId) {
+    public ResponseEntity<Double> getAverageRating(
+            @Parameter(description = "ID of the episode", required = true, example = "1")
+            @PathVariable Long episodeId) {
         Double avg = ratingService.getAverageRating(episodeId);
         return ResponseEntity.ok(avg);
     }
+
+//* ===================================================================================================================
 
     @Operation(
             summary = "Guardar nuevo episodio",
@@ -230,6 +281,8 @@ public class EpisodeController {
         return ResponseEntity.ok("Episode saved successfully");
     }
 
+//* ===================================================================================================================
+
     @Operation(
             summary = "Comentar episodio",
             description = "Permite a un usuario autenticado agregar un comentario a un episodio"
@@ -256,6 +309,8 @@ public class EpisodeController {
         episodeService.commentEpisode(episodeId, comment.getCommentary(), userDetails.getUsername());
         return ResponseEntity.ok("Comment added successfully");
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Actualizar un episodio existente",
@@ -299,6 +354,8 @@ public class EpisodeController {
         EpisodeDTO updatedEpisode = episodeService.updateEpisode(episodeId, updates, userDetails);
         return ResponseEntity.ok(updatedEpisode);
     }
+
+//* ===================================================================================================================
 
     @Operation(
             summary = "Eliminar episodio",

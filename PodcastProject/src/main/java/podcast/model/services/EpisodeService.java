@@ -47,11 +47,16 @@ private final ICommentaryRepository commentaryRepository;
         Podcast existingPodcast = podcastRepository.findById(podcastId)
                 .orElseThrow(() -> new PodcastNotFoundException("Podcast con id " + podcastId + " no encontrado"));
         // Asigna el podcast completo al episodio
+        if(existingPodcast.getEpisodes().stream()
+                .anyMatch(e -> e.getTitle().equalsIgnoreCase(episode.getTitle())))
+        {
+            throw new AlreadyCreatedException("An episode with the title '" + episode.getTitle() + "' already exists in this podcast");
+        }
         episode.setPodcast(existingPodcast);
 
         // Validaciones de season y chapter
         existingPodcast.getEpisodes().stream()
-                .max((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt()))
+                .max((e1, e2) -> e1.getPublicationDate().compareTo(e2.getPublicationDate()))
                 .ifPresent(ultimo -> {
                     if  (episode.getSeason() < ultimo.getSeason() ||
                             (episode.getSeason().equals(ultimo.getSeason()) && episode.getChapter() <= ultimo.getChapter())) {
@@ -83,6 +88,9 @@ private final ICommentaryRepository commentaryRepository;
         boolean flag = false;
         // Actualizar los campos del episodio si están presentes en el DTO
         if (updates.getTitle() != null && !updates.getTitle().isBlank()) {
+            if(updates.getTitle().equals(episode.getTitle())){
+                throw new AlreadyCreatedException("An episode with the title '" + updates.getTitle() + "' already exists in this podcast");
+            }
             episode.setTitle(updates.getTitle());
             flag = true;
         }
