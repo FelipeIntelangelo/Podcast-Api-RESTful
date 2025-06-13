@@ -1,6 +1,7 @@
 package podcast.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
@@ -63,8 +64,13 @@ public class User implements UserDetails {
     private String bio;
 
     @OneToMany(mappedBy = "user")
-    @JsonIgnoreProperties("user")
+    @JsonIgnore
     private List<Podcast> podcasts;
+
+    @JsonProperty("podcasts")
+    public List<String> getPodcasts() {
+        return podcasts != null ? podcasts.stream().map(x -> x.getTitle()).toList() : List.of();
+    }
 
     @ManyToMany
     @JsonIgnore // <- Cambia esto
