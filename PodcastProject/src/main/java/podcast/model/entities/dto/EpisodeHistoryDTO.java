@@ -10,6 +10,5 @@ import java.time.LocalDateTime;
 @Builder
 public class EpisodeHistoryDTO {
     private LocalDateTime listenedAt;
-    private Rating rating;
     private EpisodeDTO episode;
 }

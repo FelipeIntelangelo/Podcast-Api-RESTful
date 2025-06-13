@@ -76,6 +76,10 @@ public class User implements UserDetails {
     )
     private List<Podcast> favorites;
 
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<Rating> ratings;
+
     // ── Equals Y Hashcode ────────────────────────────────────────────────────────────
 
 

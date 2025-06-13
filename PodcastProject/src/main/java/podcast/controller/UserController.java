@@ -22,13 +22,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import podcast.cfg.JwtUtil;
 import podcast.model.entities.User;
 import podcast.model.entities.dto.*;
-import podcast.model.exceptions.AlreadyCreatedException;
-import podcast.model.exceptions.PodcastNotFoundException;
-import podcast.model.exceptions.UnauthorizedException;
+import podcast.model.exceptions.*;
 import podcast.model.services.EpisodeHistoryService;
+import podcast.model.services.RatingService;
 import podcast.model.services.UserDetailsServiceImpl;
 import podcast.model.services.UserService;
-import podcast.model.exceptions.UserNotFoundException;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +42,7 @@ public class UserController {
     private final EpisodeHistoryService episodeHistoryService;
     private final UserService userService;
     private final UserDetailsServiceImpl userDetailsService;
+    private final RatingService ratingService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
@@ -53,13 +52,15 @@ public class UserController {
             UserService userService,
             UserDetailsServiceImpl userDetailsService,
             AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil
+            JwtUtil jwtUtil,
+            RatingService ratingService
     ) {
         this.episodeHistoryService = episodeHistoryService;
         this.userService = userService;
         this.userDetailsService = userDetailsService;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.ratingService = ratingService;
     }
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -95,6 +96,11 @@ public class UserController {
     public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String errorMessage = "Tipo de dato incorrecto para el parámetro '" + ex.getName() + "': " + ex.getValue();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
+    @ExceptionHandler(CommentaryNotFoundException.class)
+    public ResponseEntity<String> handleCommentaryNotFound(CommentaryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
@@ -339,6 +345,24 @@ public class UserController {
     ) {
         userService.addPodcastToFavorites(userDetails.getUsername(), podcastId);
         return ResponseEntity.ok("Podcast agregado a favoritos correctamente");
+    }
+
+    @Operation(summary = "Calificar un episodio", security = @SecurityRequirement(name = "bearerAuth"))
+    @PreAuthorize("isAuthenticated")
+    @PostMapping("/{episodeId}/rate")
+    public ResponseEntity<String> rateEpisode(
+        @PathVariable Long episodeId,
+        @RequestBody RatingRequestDTO ratingRequest,
+        @AuthenticationPrincipal UserDetails userDetails) {
+        ratingService.rateEpisode(episodeId, userDetails.getUsername(), ratingRequest.getScore());
+        return ResponseEntity.ok("Episodio calificado correctamente");
+    }
+
+    @Operation(summary = "Obtener promedio de calificación de un episodio")
+    @GetMapping("/{episodeId}/average")
+    public ResponseEntity<Double> getAverageRating(@PathVariable Long episodeId) {
+        Double avg = ratingService.getAverageRating(episodeId);
+        return ResponseEntity.ok(avg);
     }
 
     @Operation(

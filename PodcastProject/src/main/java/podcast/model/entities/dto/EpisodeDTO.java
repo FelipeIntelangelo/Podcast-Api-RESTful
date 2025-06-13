@@ -17,7 +17,6 @@ public class EpisodeDTO {
     private String imageUrl;
     private Duration duration;
     private Integer views;
-    private Double averageRating;
     private Integer season;
     private Integer chapter;
     private LocalDateTime publicationDate;

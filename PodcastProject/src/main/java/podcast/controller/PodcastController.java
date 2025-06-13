@@ -110,13 +110,10 @@ public class PodcastController {
             @RequestParam(required = false) String category,
             
             @Parameter(description = "Ordenar resultados por número de vistas (true = descendente)")
-            @RequestParam(required = false) Boolean orderByViews,
-
-            @Parameter(description = "Ordenar resultados por calificación promedio (true = descendente)")
-            @RequestParam(required = false) Boolean orderByRating
+            @RequestParam(required = false) Boolean orderByViews
     ) {
         Category categoryEnum = (category != null) ? Category.valueOf(category) : null;
-        List<PodcastDTO> podcasts = podcastService.getAllFiltered(title, userId, categoryEnum, orderByViews, orderByRating);
+        List<PodcastDTO> podcasts = podcastService.getAllFiltered(title, userId, categoryEnum, orderByViews);
         return ResponseEntity.ok(podcasts);
     }
 

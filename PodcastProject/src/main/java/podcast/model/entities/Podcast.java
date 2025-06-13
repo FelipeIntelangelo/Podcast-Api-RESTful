@@ -49,6 +49,8 @@ public class Podcast {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    private Double averageRating;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -88,20 +90,29 @@ public class Podcast {
         return totalViews / episodes.size();
     }
 
-    Double calcularRatingPromedio() {
+    public void updateAverageRating() {
         if (episodes == null || episodes.isEmpty()) {
-            return 0.0;
+            this.averageRating = 0.0;
+            return;
         }
-        double totalRating = episodes.stream().
-                mapToDouble(Episode::getAverageRating)
-                .filter(rating -> rating > 0) // Exclude null ratings
-                .sum();
-        return totalRating / episodes.size();
+        double sum = 0.0;
+        int count = 0;
+        for (Episode episode : episodes) {
+            if (episode.getRatings() != null && !episode.getRatings().isEmpty()) {
+                double avg = episode.getRatings().stream()
+                        .mapToLong(Rating::getScore)
+                        .average()
+                        .orElse(0.0);
+                sum += avg;
+                count++;
+            }
+        }
+        this.averageRating = count > 0 ? sum / count : 0.0;
     }
 
     public PodcastDTO toDTO() {
         return new PodcastDTO(this.getId(), this.getTitle(), this.getDescription(), this.getCategories(),
-                calcularViewsPromedio(), calcularRatingPromedio());
+                calcularViewsPromedio(), this.getAverageRating());
     }
 
     public PodcastUpdateDTO toUpdateDTO() {

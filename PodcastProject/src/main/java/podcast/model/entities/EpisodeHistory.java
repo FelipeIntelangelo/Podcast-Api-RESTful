@@ -27,9 +27,6 @@ public class EpisodeHistory {
         this.listenedAt = LocalDateTime.now();
     }
 
-    @Embedded
-    private Rating rating;
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -41,7 +38,6 @@ public class EpisodeHistory {
     public EpisodeHistoryDTO toDTO() {
         return EpisodeHistoryDTO.builder()
                 .listenedAt(this.listenedAt)
-                .rating(this.rating)
                 .episode(this.episode.toDTO())
                 .build();
     }

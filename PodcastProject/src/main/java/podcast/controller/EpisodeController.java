@@ -89,6 +89,11 @@ public class EpisodeController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+    @ExceptionHandler(CommentaryNotFoundException.class)
+    public ResponseEntity<String> handleCommentaryNotFound(CommentaryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
     @Operation(
             summary = "Obtener todos los episodios",
             description = "Obtiene una lista de episodios en formato DTO con filtros opcionales. Los resultados se devuelven como EpisodeDTO para proteger datos sensibles y optimizar la respuesta."
@@ -212,34 +217,6 @@ public class EpisodeController {
             @RequestBody @Valid Episode episode) {
         episodeService.save(episode);
         return ResponseEntity.ok("Episode saved successfully");
-    }
-
-    @Operation(
-            summary = "Calificar episodio",
-            description = "Permite a un usuario autenticado calificar un episodio con un valor del 1 al 5"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Episodio calificado correctamente",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(type = "string", example = "Episode rated successfully")
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "Calificación inválida"),
-            @ApiResponse(responseCode = "401", description = "No autorizado"),
-            @ApiResponse(responseCode = "404", description = "Episodio no encontrado")
-    })
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/{episodeId}/rate")
-    public ResponseEntity<String> rateEpisode(
-            @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId,
-            @Parameter(description = "Calificación (1-5)", schema = @Schema(type = "integer", minimum = "1", maximum = "5"))
-            @RequestParam("rating") Long rating,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
-        episodeHistoryService.rateEpisode(episodeId, rating, userDetails.getUsername());
-        return ResponseEntity.ok("Episode rated successfully");
     }
 
     @Operation(
