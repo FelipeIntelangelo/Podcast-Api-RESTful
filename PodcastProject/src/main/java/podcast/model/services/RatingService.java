@@ -63,6 +63,10 @@ public class RatingService {
     public Double getAverageRating(Long episodeId) {
         Episode episode = episodeRepository.findById(episodeId)
                 .orElseThrow(() -> new EpisodeNotFoundException("Episodio no encontrado con id: " + episodeId));
+        Double ratingFounded = ratingRepository.findAverageScoreByEpisode(episode);
+        if ( ratingFounded == null || ratingFounded.isNaN() || ratingFounded == 0) {
+            throw new EpisodeNotFoundException("No ratings found for episode with id: " + episodeId);
+        }
         return ratingRepository.findAverageScoreByEpisode(episode);
     }
 }

@@ -358,13 +358,6 @@ public class UserController {
         return ResponseEntity.ok("Episodio calificado correctamente");
     }
 
-    @Operation(summary = "Obtener promedio de calificación de un episodio")
-    @GetMapping("/{episodeId}/average")
-    public ResponseEntity<Double> getAverageRating(@PathVariable Long episodeId) {
-        Double avg = ratingService.getAverageRating(episodeId);
-        return ResponseEntity.ok(avg);
-    }
-
     @Operation(
         summary = "Actualizar perfil de usuario",
         description = "Actualiza la información del perfil del usuario autenticado"

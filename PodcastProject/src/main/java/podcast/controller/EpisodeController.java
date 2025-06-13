@@ -27,6 +27,7 @@ import podcast.model.entities.dto.UpdateEpisodeDTO;
 import podcast.model.exceptions.*;
 import podcast.model.services.EpisodeHistoryService;
 import podcast.model.services.EpisodeService;
+import podcast.model.services.RatingService;
 
 import java.util.List;
 
@@ -37,11 +38,13 @@ public class EpisodeController {
 
     private final EpisodeService episodeService;
     private final EpisodeHistoryService episodeHistoryService;
+    private final RatingService ratingService;
 
     @Autowired
-    public EpisodeController(EpisodeService episodeService, EpisodeHistoryService episodeHistoryService) {
+    public EpisodeController(EpisodeService episodeService, EpisodeHistoryService episodeHistoryService, RatingService ratingService) {
         this.episodeService = episodeService;
         this.episodeHistoryService = episodeHistoryService;
+        this.ratingService = ratingService;
     }
 
     @ExceptionHandler(EpisodeNotFoundException.class)
@@ -187,6 +190,14 @@ public class EpisodeController {
             @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId) {
         List<Commentary> comments = episodeService.getComments(episodeId);
         return ResponseEntity.ok(comments.stream().map(Commentary::toDTO).toList());
+    }
+
+    @Operation(summary = "Obtener promedio de calificación de un episodio")
+    @PreAuthorize("isAuthenticated")
+    @GetMapping("/{episodeId}/average")
+    public ResponseEntity<Double> getAverageRating(@PathVariable Long episodeId) {
+        Double avg = ratingService.getAverageRating(episodeId);
+        return ResponseEntity.ok(avg);
     }
 
     @Operation(
