@@ -43,18 +43,16 @@ public class Podcast {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
-
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
-    protected void onUpdate() {
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
+
+    // ------------------ //
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
