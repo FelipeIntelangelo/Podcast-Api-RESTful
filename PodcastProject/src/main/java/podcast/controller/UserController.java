@@ -18,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import podcast.cfg.JwtUtil;
 import podcast.model.entities.User;
 import podcast.model.entities.dto.*;
@@ -87,6 +88,12 @@ public class UserController {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .reduce((msg1, msg2) -> msg1 + ", " + msg2)
                 .orElse("Validation error");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String errorMessage = "Tipo de dato incorrecto para el parámetro '" + ex.getName() + "': " + ex.getValue();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
@@ -370,6 +377,15 @@ public class UserController {
             @RequestBody @Valid UpdateUserDTO updates) {
         User updatedUser = userService.updateAuthenticatedUser(userDetails.getUsername(), updates);
         return ResponseEntity.ok(updatedUser.toDTO());
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<String> deleteUserById(
+            @Parameter(description = "ID del usuario a eliminar", required = true, example = "1")
+            @PathVariable Long userId) {
+        userService.deleteUserById(userId);
+        return ResponseEntity.ok("Usuario eliminado correctamente");
     }
 
     @Operation(

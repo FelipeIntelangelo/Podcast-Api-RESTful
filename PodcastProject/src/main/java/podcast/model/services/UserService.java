@@ -163,4 +163,16 @@ public class UserService {
         user.getFavorites().remove(podcast);
         userRepository.save(user);
     }
+
+    public void deleteUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con id: " + userId));
+
+        boolean isOwnerOfPodcasts = podcastRepository.existsByUserId(user.getId());
+        if (isOwnerOfPodcasts) {
+            throw new IllegalArgumentException("No se puede eliminar el usuario porque es dueño de uno o más podcasts.");
+        }
+
+        userRepository.delete(user);
+    }
 }
