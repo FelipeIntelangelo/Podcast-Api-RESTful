@@ -90,8 +90,13 @@ public class Episode {
     }
 
     @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("episodes")
+    @JsonIgnore
     private List<Commentary> commentaries;
+
+    @JsonProperty("commentaries")
+    public Integer getCommentariesCount() {
+        return commentaries != null ? commentaries.size() : 0;
+    }
 
     public EpisodeDTO toDTO() {
         return EpisodeDTO.builder()

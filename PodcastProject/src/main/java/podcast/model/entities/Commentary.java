@@ -32,6 +32,11 @@ private String content;
 @Column(nullable = false)
 private LocalDateTime createdAt = LocalDateTime.now();
 
+@PrePersist
+protected void onCreate() {
+    this.createdAt = LocalDateTime.now();
+}
+
 @ManyToOne
 @JoinColumn(name = "user_id", nullable = false)
 private User user;

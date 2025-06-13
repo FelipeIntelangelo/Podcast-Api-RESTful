@@ -176,6 +176,7 @@ public class EpisodeController {
             ),
             @ApiResponse(responseCode = "404", description = "Episodio no encontrado")
     })
+    @PreAuthorize("isAuthenticated")
     @GetMapping("/{episodeId}/commentaries")
     public ResponseEntity<List<CommentaryDTO>> getComments(
             @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId) {

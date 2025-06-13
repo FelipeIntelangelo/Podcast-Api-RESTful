@@ -158,7 +158,7 @@ private final ICommentaryRepository commentaryRepository;
         User user = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
 
-        episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, (user.getId()))
+        episodeHistoryRepository.findFirstByEpisode_IdAndUser_Id(episodeId, (user.getId()))
                 .orElseThrow(() -> new EpisodeNotFoundException("Episode not viewed for: " + episodeId + " and user ID: " + username));
 
         Episode episode = episodeRepository.findById(episodeId)

@@ -49,13 +49,12 @@ public class EpisodeHistoryService {
         }
         return episodiosUnicos.values().stream().map(EpisodeHistory::toDTO).toList();
     }
-
     public void rateEpisode(Long episodeId, Long rating, String username) {
         Long userId = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username))
                 .getId();
 
-        EpisodeHistory episodeHistory = episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, userId)
+        EpisodeHistory episodeHistory = episodeHistoryRepository.findFirstByEpisode_IdAndUser_Id(episodeId, userId)
                 .orElseThrow(() -> new EpisodeNotFoundException("Episode history not found for ID: " + episodeId + " and user ID: " + userId));
 
         episodeHistory.getRating().setRating(rating);
