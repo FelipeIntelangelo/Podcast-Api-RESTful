@@ -31,7 +31,7 @@ public class EpisodeHistoryService {
     }
 
     public List<EpisodeHistoryDTO> getHistoryByUsername(String username) {
-        User user = userRepository.findByCredentialUsernameFetch(username)
+        User user = userRepository .findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
         List<EpisodeHistory> history = episodeHistoryRepository.findEpisodesByUserId(user.getId());
         if (history.isEmpty()) {

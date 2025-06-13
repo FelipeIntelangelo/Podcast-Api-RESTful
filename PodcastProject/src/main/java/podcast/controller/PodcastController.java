@@ -1,5 +1,13 @@
 package podcast.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,16 +28,16 @@ import podcast.model.services.PodcastService;
 
 import java.util.List;
 
-
 @RestController
 @RequestMapping(path = "podcastUTN/v1/podcasts")
+@Tag(
+    name = "Podcasts",
+    description = "API para gestionar podcasts - Incluye operaciones CRUD, filtrado y gestión de contenido multimedia"
+)
 public class PodcastController {
 
-    //DEPENDENCIES
     @Autowired
     private PodcastService podcastService;
-
-    //HANDLERS
 
     @ExceptionHandler(PodcastNotFoundException.class)
     public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
@@ -60,19 +68,41 @@ public class PodcastController {
         String errorMessage = "Invalid value for parameter '" + ex.getName() + "': " + ex.getValue();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
-    //END HANDLERS
 
-    // ---------------------------------------------------------------------------------------
-
-    //START MAPPINGS
-
-    //GET MAPPINGS
-
+    @Operation(
+        summary = "Obtener todos los podcasts",
+        description = "Recupera una lista de podcasts con opciones de filtrado por título, creador, categoría y ordenamiento por vistas"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Lista de podcasts encontrada exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "array", implementation = PodcastDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Parámetros de filtro inválidos",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Invalid category value: INVALID_CATEGORY")
+            )
+        )
+    })
     @GetMapping
     public ResponseEntity<List<PodcastDTO>> getAll(
+            @Parameter(description = "Filtrar por título del podcast (búsqueda parcial)")
             @RequestParam(required = false) String title,
+            
+            @Parameter(description = "Filtrar por ID del usuario creador")
             @RequestParam(required = false) Integer userId,
+            
+            @Parameter(description = "Filtrar por categoría del podcast (ej: NOTICIAS, DEPORTES, TECNOLOGIA)")
             @RequestParam(required = false) String category,
+            
+            @Parameter(description = "Ordenar resultados por número de vistas (true = descendente)")
             @RequestParam(required = false) Boolean orderByViews
     ) {
         Category categoryEnum = (category != null) ? Category.valueOf(category) : null;
@@ -80,56 +110,186 @@ public class PodcastController {
         return ResponseEntity.ok(podcasts);
     }
 
-
+    @Operation(
+        summary = "Obtener podcast por ID",
+        description = "Recupera un podcast específico utilizando su identificador único"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Podcast encontrado exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = Podcast.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Podcast no encontrado",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Podcast with id 123 not found")
+            )
+        )
+    })
     @GetMapping("/{podcastId}")
-    public ResponseEntity<Podcast> getById(@PathVariable("podcastId") Long podcastId) {
-        Podcast podcastPivot = podcastService.getPodcastById(podcastId);
-        return ResponseEntity.ok(podcastPivot);
+    public ResponseEntity<Podcast> getById(
+            @Parameter(description = "ID del podcast a recuperar", required = true, example = "1")
+            @PathVariable("podcastId") Long podcastId) {
+        return ResponseEntity.ok(podcastService.getPodcastById(podcastId));
     }
 
+    @Operation(
+        summary = "Obtener podcasts del usuario autenticado",
+        description = "Recupera todos los podcasts creados por el usuario actualmente autenticado"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Lista de podcasts del usuario recuperada exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "array", implementation = PodcastDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autorizado - Token JWT faltante o inválido"
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Acceso denegado - El usuario no tiene el rol requerido"
+        )
+    })
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
     @GetMapping("/myPodcasts")
-    public ResponseEntity<List<PodcastDTO>> getMyPodcasts(@AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        List<Podcast> podcasts = podcastService.getByUsername(username);
+    public ResponseEntity<List<PodcastDTO>> getMyPodcasts(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
+        List<Podcast> podcasts = podcastService.getByUsername(userDetails.getUsername());
         return ResponseEntity.ok(podcasts.stream().map(Podcast::toDTO).toList());
     }
 
-    //Este get lo hago de esta manera, ya que el de arriba pienso entregar el DTO y en este el podcast con todos sus atributos
-
-    //POST - PUT MAPPINGS
+    @Operation(
+        summary = "Crear nuevo podcast",
+        description = "Crea un nuevo podcast en el sistema. Requiere autenticación y rol de creador"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Podcast creado exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Podcast saved successfully")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos del podcast inválidos",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "title: must not be blank")
+            )
+        ),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT faltante o inválido"),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Conflicto - El podcast ya existe",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Podcast with title 'My Podcast' already exists")
+            )
+        )
+    })
     @PreAuthorize("isAuthenticated()")
     @PostMapping
-    public ResponseEntity<String> save(@RequestBody @Valid Podcast podcast) {
+    public ResponseEntity<String> save(
+            @Parameter(
+                description = "Datos del nuevo podcast",
+                required = true,
+                content = @Content(schema = @Schema(implementation = Podcast.class))
+            )
+            @RequestBody @Valid Podcast podcast) {
         podcastService.save(podcast);
         return ResponseEntity.ok("Podcast saved successfully");
     }
 
+    @Operation(
+        summary = "Actualizar podcast existente",
+        description = "Actualiza un podcast existente. Solo el creador del podcast o un administrador pueden realizar esta operación"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Podcast actualizado exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Podcast updated successfully")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Datos del podcast inválidos o ID no coincide"
+        ),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT faltante o inválido"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado - No tiene permisos para actualizar este podcast"),
+        @ApiResponse(responseCode = "404", description = "Podcast no encontrado")
+    })
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
     @PutMapping("/{podcastId}")
-    public ResponseEntity<String> update(@PathVariable("podcastId") Long podcastId,
-                                         @RequestBody @Valid Podcast podcast,
-                                         @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<String> update(
+            @Parameter(description = "ID del podcast a actualizar", required = true, example = "1")
+            @PathVariable("podcastId") Long podcastId,
+            
+            @Parameter(
+                description = "Datos actualizados del podcast",
+                required = true,
+                content = @Content(schema = @Schema(implementation = Podcast.class))
+            )
+            @RequestBody @Valid Podcast podcast,
+            
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
         if (!podcastId.equals(podcast.getId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Podcast ID in path does not match ID in body");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Podcast ID in path does not match ID in body");
         }
-        if (!podcastService.getPodcastById(podcastId).getUser().getCredential().getUsername().equals(userDetails.getUsername())
-        && !userDetails.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have permission to update this podcast");
-        } // Verifica que el usuario sea el creador del podcast o admin
-
+        if (!podcastService.getPodcastById(podcastId).getUser().getCredential().getUsername()
+                .equals(userDetails.getUsername())
+                && !userDetails.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You do not have permission to update this podcast");
+        }
         podcastService.update(podcast);
         return ResponseEntity.ok("Podcast updated successfully");
     }
 
-    //DELETE MAPPINGS
+    @Operation(
+        summary = "Eliminar podcast",
+        description = "Elimina un podcast existente. Solo el creador del podcast o un administrador pueden realizar esta operación"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Podcast eliminado exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Podcast deleted successfully")
+            )
+        ),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT faltante o inválido"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado - No tiene permisos para eliminar este podcast"),
+        @ApiResponse(responseCode = "404", description = "Podcast no encontrado")
+    })
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
     @DeleteMapping("/{podcastId}")
-    public ResponseEntity<String> deleteById(@PathVariable("podcastId") Long podcastId) {
+    public ResponseEntity<String> deleteById(
+            @Parameter(description = "ID del podcast a eliminar", required = true, example = "1")
+            @PathVariable("podcastId") Long podcastId) {
         podcastService.deleteById(podcastId);
         return ResponseEntity.ok("Podcast deleted successfully");
     }
-
-    //END MAPPINGS
-
 }
