@@ -1,5 +1,6 @@
 package podcast.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
@@ -17,9 +18,9 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 @Builder
 @Entity
+@ToString
 @Table(name = "Users")
 public class User implements UserDetails {
 
@@ -64,14 +65,14 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     @JsonIgnoreProperties("user")
     private List<Podcast> podcasts;
-    
+
     @ManyToMany
-    @JsonIgnoreProperties("favorites")
+    @JsonIgnore // <- Cambia esto
     @JoinTable(
-        name = "Favorites",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "podcast_id"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "podcast_id"})
+            name = "Favorites",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "podcast_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "podcast_id"})
     )
     private List<Podcast> favorites;
 
@@ -101,39 +102,47 @@ public class User implements UserDetails {
     // ── Metodos De Userdetails ───────────────────────────────────────────────────────
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return credential.getRoles();
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return credential.getPassword();
     }
 
     @Override
+    @JsonIgnore
     public String getUsername() {
         return credential.getUsername();
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return UserDetails.super.isAccountNonExpired();
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return UserDetails.super.isAccountNonLocked();
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return UserDetails.super.isCredentialsNonExpired();
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
 
     // ── Metodo Para Convertir User A Userdto ─────────────────────────────────────────
     public UserDTO toDTO() {

@@ -1,5 +1,6 @@
 package podcast.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -71,6 +72,10 @@ public class Podcast {
     @Column(name = "category")
     @NotEmpty
     private List<Category> categories;
+
+    @ManyToMany(mappedBy = "favorites")
+    @JsonIgnore
+    private List<User> favoritedBy;
 
 
     Long calcularViewsPromedio() {
