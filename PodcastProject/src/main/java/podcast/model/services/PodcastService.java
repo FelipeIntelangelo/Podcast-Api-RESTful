@@ -1,5 +1,8 @@
 package podcast.model.services;
 
+import jakarta.validation.Valid;
+import org.springframework.security.core.userdetails.UserDetails;
+import podcast.model.entities.dto.PodcastUpdateDTO;
 import podcast.model.entities.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,7 +14,6 @@ import podcast.model.exceptions.*;
 import podcast.model.repositories.interfaces.IPodcastRepository;
 import podcast.model.repositories.interfaces.IUserRepository;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +52,8 @@ public class PodcastService {
         }
         podcastRepository.save(podcast);
     }
+
+
 
     public List<PodcastDTO> getAllFiltered(String title, Integer userId, Category category, Boolean orderByViews, Boolean orderByRating) {
         List<Podcast> filtered;
@@ -110,4 +114,29 @@ public class PodcastService {
         podcastRepository.deleteById(podcastId);
     }
 
+    public Podcast updatePodcast(Long podcastId, @Valid PodcastUpdateDTO updates, UserDetails userDetails) {
+        Podcast podcast = podcastRepository.findById(podcastId)
+                .orElseThrow(() -> new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
+
+        // Verifica que el usuario que intenta actualizar el podcast sea el propietario o un administrador
+        if (!podcast.getUser().getCredential().getUsername().equals(userDetails.getUsername()) && !userDetails.getAuthorities().contains(Role.ROLE_ADMIN)) {
+            throw new UnauthorizedException("Podcast with ID " + podcastId + " does not belong to YOU " + userDetails.getUsername());
+        }
+
+        // Actualiza los campos del podcast solo si están presentes en el DTO
+        if (updates.getTitle() != null && !updates.getTitle().isBlank()) {
+            podcast.setTitle(updates.getTitle());
+        }
+        if (updates.getDescription() != null && !updates.getDescription().isBlank()) {
+            podcast.setDescription(updates.getDescription());
+        }
+        if (updates.getImageUrl() != null && !updates.getImageUrl().isBlank()) {
+            podcast.setImageUrl(updates.getImageUrl());
+        }
+        if (updates.getCategories() != null && !updates.getCategories().isEmpty()) {
+            podcast.getCategories().addAll(updates.getCategories());
+        }
+
+        return podcastRepository.save(podcast);
+    }
 }

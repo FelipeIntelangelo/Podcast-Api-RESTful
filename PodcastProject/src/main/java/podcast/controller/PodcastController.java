@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import podcast.model.entities.Podcast;
 import podcast.model.entities.dto.PodcastDTO;
+import podcast.model.entities.dto.PodcastUpdateDTO;
 import podcast.model.entities.enums.Category;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.NullUserException;
@@ -273,6 +274,49 @@ public class PodcastController {
         }
         podcastService.update(podcast);
         return ResponseEntity.ok("Podcast updated successfully");
+    }
+
+    @Operation(
+            summary = "Actualizar un podcast existente",
+            description = "Actualiza los datos de un podcast. Solo el creador o un administrador pueden realizar esta operación.",
+            parameters = {
+                    @Parameter(
+                            name = "podcastId",
+                            description = "ID del podcast a actualizar",
+                            required = true,
+                            example = "1"
+                    )
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Datos a actualizar del podcast",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = PodcastUpdateDTO.class))
+            )
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Podcast actualizado exitosamente",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PodcastDTO.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT faltante o inválido"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado - No tiene permisos para actualizar este podcast"),
+            @ApiResponse(responseCode = "404", description = "Podcast no encontrado")
+    })
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
+    @PatchMapping("/{podcastId}")
+    public ResponseEntity<PodcastDTO> updatePodcast(
+            @Parameter(hidden = true) @PathVariable Long podcastId,
+            @RequestBody @Valid PodcastUpdateDTO updates,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Podcast updatedPodcast = podcastService.updatePodcast(podcastId, updates, userDetails);
+        return ResponseEntity.ok(updatedPodcast.toDTO());
     }
 
     @Operation(

@@ -107,6 +107,7 @@ public class UserController {
         return ResponseEntity.status(500).body(Map.of("error", "Ocurrió un error inesperado: " + ex.getMessage()));
     }
 
+
     @Operation(
         summary = "Obtener perfil del usuario autenticado",
         description = "Recupera el perfil completo del usuario que está actualmente autenticado"
