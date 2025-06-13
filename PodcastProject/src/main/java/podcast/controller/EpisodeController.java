@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,11 @@ import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
 import podcast.model.entities.dto.CommentaryDTO;
 import podcast.model.entities.dto.EpisodeDTO;
+import podcast.model.entities.dto.UpdateEpisodeDTO;
 import podcast.model.exceptions.AlreadyCreatedException;
 import podcast.model.exceptions.EpisodeNotFoundException;
 import podcast.model.exceptions.PodcastNotFoundException;
+import podcast.model.exceptions.UnauthorizedException;
 import podcast.model.services.EpisodeHistoryService;
 import podcast.model.services.EpisodeService;
 
@@ -46,6 +49,11 @@ public class EpisodeController {
     @ExceptionHandler(EpisodeNotFoundException.class)
     public ResponseEntity<String> handleEpisodeNotFound(EpisodeNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 
     @ExceptionHandler(AlreadyCreatedException.class)
@@ -253,38 +261,46 @@ public class EpisodeController {
     }
 
     @Operation(
-            summary = "Actualizar episodio",
-            description = "Actualiza un episodio existente. Solo disponible para creadores y administradores"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Episodio actualizado correctamente",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(type = "string", example = "Episode updated successfully")
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "Datos del episodio inválidos"),
-            @ApiResponse(responseCode = "401", description = "No autorizado"),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado"),
-            @ApiResponse(responseCode = "404", description = "Episodio no encontrado")
-    })
-    @PreAuthorize("hasRole('ROLE_CREATOR') or hasRole('ROLE_ADMIN')")
-    @PutMapping("/{episodeId}")
-    public ResponseEntity<String> update(
-            @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId,
+        summary = "Actualizar un episodio existente",
+        description = "Actualiza los datos de un episodio. Solo el creador o un administrador pueden realizar esta operación.",
+        parameters = {
             @Parameter(
-                    description = "Datos actualizados del episodio",
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = Episode.class))
+                name = "episodeId",
+                description = "ID del episodio a actualizar",
+                required = true,
+                example = "1"
             )
-            @RequestBody @Valid Episode episode) {
-        if (!episodeId.equals(episode.getId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Episode ID in path does not match ID in body");
-        }
-        episodeService.update(episode);
-        return ResponseEntity.ok("Episode updated successfully");
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Datos a actualizar del episodio",
+            required = true,
+            content = @Content(schema = @Schema(implementation = UpdateEpisodeDTO.class))
+        )
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Episodio actualizado exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = EpisodeDTO.class)
+            )
+        ),
+        @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT faltante o inválido"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado - No tiene permisos para actualizar este episodio"),
+        @ApiResponse(responseCode = "404", description = "Episodio no encontrado")
+    })
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
+    @PatchMapping("/{episodeId}")
+    public ResponseEntity<EpisodeDTO> updateEpisode(
+            @Parameter(hidden = true) @PathVariable Long episodeId,
+            @RequestBody @Valid UpdateEpisodeDTO updates,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        EpisodeDTO updatedEpisode = episodeService.updateEpisode(episodeId, updates, userDetails);
+        return ResponseEntity.ok(updatedEpisode);
     }
 
     @Operation(

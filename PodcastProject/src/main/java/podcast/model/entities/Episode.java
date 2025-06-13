@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import podcast.model.entities.dto.EpisodeDTO;
+import podcast.model.entities.dto.UpdateEpisodeDTO;
 import podcast.model.entities.helpers.DurationConverter;
 import podcast.model.entities.helpers.DurationFromStringDeserializer;
 
@@ -100,5 +101,4 @@ public class Episode {
                 .podcastTitle(this.podcast.getTitle())
                 .build();
     }
-
 }

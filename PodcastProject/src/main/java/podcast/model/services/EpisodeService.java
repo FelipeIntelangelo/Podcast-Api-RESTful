@@ -1,14 +1,16 @@
 package podcast.model.services;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
 import podcast.model.entities.Podcast;
-import podcast.model.exceptions.CommentaryNotFoundException;
-import podcast.model.exceptions.EpisodeNotFoundException;
-import podcast.model.exceptions.ChapterOrSeasonInvalidException;
-import podcast.model.exceptions.PodcastNotFoundException;
+import podcast.model.entities.dto.EpisodeDTO;
+import podcast.model.entities.dto.UpdateEpisodeDTO;
+import podcast.model.entities.enums.Role;
+import podcast.model.exceptions.*;
 import podcast.model.repositories.interfaces.IEpisodeHistoryRepository;
 import podcast.model.repositories.interfaces.IEpisodeRepository;
 import podcast.model.repositories.interfaces.IPodcastRepository;
@@ -63,12 +65,35 @@ private final IUserRepository userRepository;
     }
 
     // UPDATE
-    public void update(Episode episode) {
+    public EpisodeDTO updateEpisode(Long episodeId, @Valid UpdateEpisodeDTO updates, UserDetails userDetails) {
+        // Buscar el episodio por ID
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new EpisodeNotFoundException("Episodio con ID " + episodeId + " no encontrado"));
 
-        if (!episodeRepository.existsById(Long.valueOf(episode.getId()))) {
-            throw new EpisodeNotFoundException("Episode with ID " + episode.getId() + " not found");
+        // Verificar que el usuario sea el creador o tenga rol de administrador
+        if (!episode.getPodcast().getUser().getCredential().getUsername().equals(userDetails.getUsername()) &&
+                !userDetails.getAuthorities().contains(Role.ROLE_ADMIN)) {
+            throw new UnauthorizedException("No tienes permisos para actualizar este episodio");
         }
+
+        // Actualizar los campos del episodio si están presentes en el DTO
+        if (updates.getTitle() != null && !updates.getTitle().isBlank()) {
+            episode.setTitle(updates.getTitle());
+        }
+        if (updates.getDescription() != null && !updates.getDescription().isBlank()) {
+            episode.setDescription(updates.getDescription());
+        }
+        if (updates.getImageUrl() != null && !updates.getImageUrl().isBlank()) {
+            episode.setImageUrl(updates.getImageUrl());
+        }
+
+        // Guardar los cambios en el repositorio
         episodeRepository.save(episode);
+
+        EpisodeDTO episodeDTO = episode.toDTO();
+
+        // Retornar el DTO actualizado
+        return episodeDTO;
     }
 
     // DELETE
@@ -96,8 +121,6 @@ private final IUserRepository userRepository;
         return episode.getAudioPath();
     }
 
-
-
     public List<Episode> getAllFiltered(String title, Long podcastId) {
         List<Episode> filtered;
 
@@ -116,7 +139,6 @@ private final IUserRepository userRepository;
         }
         return filtered;
     }
-
 
     public void commentEpisode(Long episodeId, String comment, String username) {
         episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, Long.valueOf(username))
