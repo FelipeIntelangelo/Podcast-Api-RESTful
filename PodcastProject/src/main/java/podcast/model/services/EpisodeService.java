@@ -59,7 +59,8 @@ private final ICommentaryRepository commentaryRepository;
                 .max((e1, e2) -> e1.getPublicationDate().compareTo(e2.getPublicationDate()))
                 .ifPresent(ultimo -> {
                     if  (episode.getSeason() < ultimo.getSeason() ||
-                            (episode.getSeason().equals(ultimo.getSeason()) && episode.getChapter() <= ultimo.getChapter())) {
+                            (episode.getSeason().equals(ultimo.getSeason()) && !episode.getChapter().equals(ultimo.getChapter()+1))
+                            ) {
                         throw new ChapterOrSeasonInvalidException("The episode must have a season and/or chapter greater than the last one (" +
                                 "Season: " + ultimo.getSeason() + ", Chapter: " + ultimo.getChapter() + ")");
                     }
