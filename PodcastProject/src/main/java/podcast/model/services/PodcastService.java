@@ -46,15 +46,6 @@ public class PodcastService {
         podcastRepository.save(podcast);
     }
 
-    public void update(Podcast podcast) {
-        if (!podcastRepository.existsById(podcast.getId())) {
-            throw new PodcastNotFoundException("Podcast with ID " + podcast.getId() + " not found");
-        }
-        podcastRepository.save(podcast);
-    }
-
-
-
     public List<PodcastDTO> getAllFiltered(String title, Integer userId, Category category, Boolean orderByViews, Boolean orderByRating) {
         List<Podcast> filtered;
 

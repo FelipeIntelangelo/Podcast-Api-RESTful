@@ -225,56 +225,6 @@ public class PodcastController {
         return ResponseEntity.ok("Podcast saved successfully");
     }
 
-    @Operation(
-        summary = "Actualizar podcast existente",
-        description = "Actualiza un podcast existente. Solo el creador del podcast o un administrador pueden realizar esta operación"
-    )
-    @SecurityRequirement(name = "bearerAuth")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            description = "Podcast actualizado exitosamente",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(type = "string", example = "Podcast updated successfully")
-            )
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Datos del podcast inválidos o ID no coincide"
-        ),
-        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT faltante o inválido"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado - No tiene permisos para actualizar este podcast"),
-        @ApiResponse(responseCode = "404", description = "Podcast no encontrado")
-    })
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CREATOR')")
-    @PutMapping("/{podcastId}")
-    public ResponseEntity<String> update(
-            @Parameter(description = "ID del podcast a actualizar", required = true, example = "1")
-            @PathVariable("podcastId") Long podcastId,
-            
-            @Parameter(
-                description = "Datos actualizados del podcast",
-                required = true,
-                content = @Content(schema = @Schema(implementation = Podcast.class))
-            )
-            @RequestBody @Valid Podcast podcast,
-            
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
-        if (!podcastId.equals(podcast.getId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Podcast ID in path does not match ID in body");
-        }
-        if (!podcastService.getPodcastById(podcastId).getUser().getCredential().getUsername()
-                .equals(userDetails.getUsername())
-                && !userDetails.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You do not have permission to update this podcast");
-        }
-        podcastService.update(podcast);
-        return ResponseEntity.ok("Podcast updated successfully");
-    }
 
     @Operation(
             summary = "Actualizar un podcast existente",
