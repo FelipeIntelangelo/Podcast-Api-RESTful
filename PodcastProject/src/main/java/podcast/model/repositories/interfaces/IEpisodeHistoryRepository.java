@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface IEpisodeHistoryRepository extends JpaRepository<EpisodeHistory, Long> {
-    Optional<EpisodeHistory> findByEpisode_IdAndUser_Id(Long episodeId, Long userId);
+    Optional<EpisodeHistory> findFirstByEpisode_IdAndUser_Id(Long episodeId, Long userId);
 
     @Query("SELECT eh FROM EpisodeHistory eh WHERE eh.user.id = :userId")
     List<EpisodeHistory> findEpisodesByUserId(@Param("userId") Long userId);
