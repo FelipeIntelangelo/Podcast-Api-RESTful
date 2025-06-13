@@ -21,12 +21,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
 import podcast.model.entities.dto.CommentaryDTO;
+import podcast.model.entities.dto.CommentaryRequestDTO;
 import podcast.model.entities.dto.EpisodeDTO;
 import podcast.model.entities.dto.UpdateEpisodeDTO;
-import podcast.model.exceptions.AlreadyCreatedException;
-import podcast.model.exceptions.EpisodeNotFoundException;
-import podcast.model.exceptions.PodcastNotFoundException;
-import podcast.model.exceptions.UnauthorizedException;
+import podcast.model.exceptions.*;
 import podcast.model.services.EpisodeHistoryService;
 import podcast.model.services.EpisodeService;
 
@@ -79,6 +77,16 @@ public class EpisodeController {
     public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String errorMessage = "Invalid value for parameter '" + ex.getName() + "': " + ex.getValue();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @Operation(
@@ -143,7 +151,7 @@ public class EpisodeController {
             @ApiResponse(responseCode = "401", description = "No autorizado"),
             @ApiResponse(responseCode = "404", description = "Episodio no encontrado")
     })
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated")
     @GetMapping("/{episodeId}/play")
     public ResponseEntity<String> playEpisode(
             @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId,
@@ -254,9 +262,9 @@ public class EpisodeController {
     @PostMapping("/{episodeId}/comment")
     public ResponseEntity<String> commentEpisode(
             @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId,
-            @Parameter(description = "Texto del comentario") @RequestParam("comment") String comment,
+            @Parameter(description = "Texto del comentario") @RequestBody @Valid CommentaryRequestDTO comment,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
-        episodeService.commentEpisode(episodeId, comment, userDetails.getUsername());
+        episodeService.commentEpisode(episodeId, comment.getCommentary(), userDetails.getUsername());
         return ResponseEntity.ok("Comment added successfully");
     }
 
@@ -323,8 +331,9 @@ public class EpisodeController {
     @PreAuthorize("hasRole('ROLE_CREATOR') or hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{episodeId}")
     public ResponseEntity<String> deleteById(
-            @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId) {
-        episodeService.deleteById(episodeId);
+            @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        episodeService.deleteById(episodeId, userDetails.getUsername());
         return ResponseEntity.ok("Episode deleted successfully");
     }
 }

@@ -14,7 +14,9 @@ import podcast.model.repositories.interfaces.IEpisodeRepository;
 import podcast.model.repositories.interfaces.IUserRepository;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EpisodeHistoryService {
@@ -31,13 +33,21 @@ public class EpisodeHistoryService {
     }
 
     public List<EpisodeHistoryDTO> getHistoryByUsername(String username) {
-        User user = userRepository .findByCredentialUsername(username)
+        User user = userRepository.findByCredentialUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
         List<EpisodeHistory> history = episodeHistoryRepository.findEpisodesByUserId(user.getId());
         if (history.isEmpty()) {
             throw new EpisodeNotFoundException("No episode history found for user: " + username);
         }
-        return history.stream().map(EpisodeHistory::toDTO).toList();
+        // Filtra por episodio único usando el id del episodio
+        Map<Integer, EpisodeHistory> episodiosUnicos = new LinkedHashMap<>();
+        for (EpisodeHistory eh : history) {
+            Integer episodeId = eh.getEpisode().getId();
+            if (!episodiosUnicos.containsKey(episodeId)) {
+                episodiosUnicos.put(episodeId, eh);
+            }
+        }
+        return episodiosUnicos.values().stream().map(EpisodeHistory::toDTO).toList();
     }
 
     public void rateEpisode(Long episodeId, Long rating, String username) {
@@ -59,18 +69,16 @@ public class EpisodeHistoryService {
     }
 
     public void registerPlay(Long episodeId, String username) {
-        Long userId = userRepository.findByCredentialUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username))
-                .getId();
+        User user = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
 
-        EpisodeHistory episodeHistory = episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, userId)
-                .orElseThrow(() -> new EpisodeNotFoundException("Episode history not found for ID: " + episodeId + " and user ID: " + userId));
-
-        episodeHistory.setListenedAt(LocalDateTime.now());
-        episodeHistoryRepository.save(episodeHistory);
-
-        Episode episode = episodeRepository.findById(episodeId) //aumento la view del episodio
+        Episode episode = episodeRepository.findById(episodeId)
                 .orElseThrow(() -> new EpisodeNotFoundException("Episode not found for ID: " + episodeId));
+
+        episodeHistoryRepository.save(EpisodeHistory.builder()
+                .episode(episode)
+                .user(user)
+                .build());
         episode.setViews(episode.getViews() + 1);
         episodeRepository.save(episode);
     }

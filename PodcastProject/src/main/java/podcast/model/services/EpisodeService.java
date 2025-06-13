@@ -7,14 +7,12 @@ import org.springframework.stereotype.Service;
 import podcast.model.entities.Commentary;
 import podcast.model.entities.Episode;
 import podcast.model.entities.Podcast;
+import podcast.model.entities.User;
 import podcast.model.entities.dto.EpisodeDTO;
 import podcast.model.entities.dto.UpdateEpisodeDTO;
 import podcast.model.entities.enums.Role;
 import podcast.model.exceptions.*;
-import podcast.model.repositories.interfaces.IEpisodeHistoryRepository;
-import podcast.model.repositories.interfaces.IEpisodeRepository;
-import podcast.model.repositories.interfaces.IPodcastRepository;
-import podcast.model.repositories.interfaces.IUserRepository;
+import podcast.model.repositories.interfaces.*;
 
 import java.util.List;
 
@@ -25,16 +23,19 @@ private final IEpisodeRepository episodeRepository;
 private final IPodcastRepository podcastRepository;
 private final IEpisodeHistoryRepository episodeHistoryRepository;
 private final IUserRepository userRepository;
+private final ICommentaryRepository commentaryRepository;
 
     @Autowired
     public EpisodeService(IEpisodeRepository episodeRepository,
                           IPodcastRepository podcastRepository,
                           IEpisodeHistoryRepository episodeHistoryRepository,
-                          IUserRepository userRepository) {
+                          IUserRepository userRepository,
+                          ICommentaryRepository commentaryRepository) {
         this.episodeRepository = episodeRepository;
         this.podcastRepository = podcastRepository;
         this.episodeHistoryRepository = episodeHistoryRepository;
         this.userRepository = userRepository;
+        this.commentaryRepository = commentaryRepository;
     }
 
     // SAVE
@@ -76,15 +77,22 @@ private final IUserRepository userRepository;
             throw new UnauthorizedException("No tienes permisos para actualizar este episodio");
         }
 
+        boolean flag = false;
         // Actualizar los campos del episodio si están presentes en el DTO
         if (updates.getTitle() != null && !updates.getTitle().isBlank()) {
             episode.setTitle(updates.getTitle());
+            flag = true;
         }
         if (updates.getDescription() != null && !updates.getDescription().isBlank()) {
             episode.setDescription(updates.getDescription());
+            flag = true;
         }
         if (updates.getImageUrl() != null && !updates.getImageUrl().isBlank()) {
             episode.setImageUrl(updates.getImageUrl());
+            flag = true;
+        }
+        if (!flag) {
+            throw new IllegalArgumentException("At least one field must be provided for update");
         }
 
         // Guardar los cambios en el repositorio
@@ -97,14 +105,16 @@ private final IUserRepository userRepository;
     }
 
     // DELETE
-    public void deleteById(Long episodeId) {
+    public void deleteById(Long episodeId, String username) {
         Episode episode = episodeRepository.findById(episodeId).orElseThrow(() ->
                 new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
         Podcast podcast = episode.getPodcast();
-        if (podcast != null){
-            podcast.getEpisodes().remove(episode);
-            podcastRepository.save(podcast);
+        if (!podcast.getUser().getCredential().getUsername().equals(username) &&
+        !podcast.getUser().getAuthorities().contains(Role.ROLE_ADMIN)) {
+            throw new UnauthorizedException("Episode with ID " + episodeId + " does not belong to YOU " + username + " and you are not an admin");
         }
+        podcast.getEpisodes().remove(episode);
+        podcastRepository.save(podcast);
         episodeRepository.delete(episode);
     }
 
@@ -141,18 +151,26 @@ private final IUserRepository userRepository;
     }
 
     public void commentEpisode(Long episodeId, String comment, String username) {
-        episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, Long.valueOf(username))
+        if (comment == null || comment.isBlank()) {
+            throw new IllegalArgumentException("Comment cannot be null or blank");
+        }
+
+        User user = userRepository.findByCredentialUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+
+        episodeHistoryRepository.findByEpisode_IdAndUser_Id(episodeId, (user.getId()))
                 .orElseThrow(() -> new EpisodeNotFoundException("Episode not viewed for: " + episodeId + " and user ID: " + username));
+
         Episode episode = episodeRepository.findById(episodeId)
                 .orElseThrow(() -> new EpisodeNotFoundException("Episode not found for ID: " + episodeId));
+
         Commentary commentary = Commentary.builder()
                 .content(comment)
-                .user(userRepository.findByCredentialUsername(username)
-                        .orElseThrow(() -> new EpisodeNotFoundException("User not found with username: " + username)))
+                .user(user)
                 .episode(episode)
                 .build();
-        episode.getCommentaries().add(commentary);
-        episodeRepository.save(episode);
+
+        commentaryRepository.save(commentary);
     }
 
     public List<Episode> getEpisodesByMostViews() {

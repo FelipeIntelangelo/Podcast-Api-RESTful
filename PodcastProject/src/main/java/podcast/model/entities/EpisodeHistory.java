@@ -19,7 +19,13 @@ public class EpisodeHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "listened_at", nullable = false, updatable = false)
     private LocalDateTime listenedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.listenedAt = LocalDateTime.now();
+    }
 
     @Embedded
     private Rating rating;

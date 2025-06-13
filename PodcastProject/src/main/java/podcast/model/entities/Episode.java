@@ -1,6 +1,8 @@
 package podcast.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -16,10 +18,10 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@ToString
 @Builder
 @Table(name = "Episodes")
 
@@ -79,8 +81,13 @@ public class Episode {
 
     @ManyToOne
     @JoinColumn(name = "podcast_id", nullable = false)
-    @JsonIgnoreProperties("episodes")
+    @JsonIgnore
     private Podcast podcast;
+
+    @JsonProperty("podcast")
+    public String getPodcastTitle() {
+        return podcast != null ? "Id: " + podcast.getId() + " = Title: " + podcast.getTitle() : null;
+    }
 
     @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("episodes")
@@ -101,4 +108,5 @@ public class Episode {
                 .podcastTitle(this.podcast.getTitle())
                 .build();
     }
+
 }
