@@ -36,7 +36,7 @@ private LocalDateTime createdAt = LocalDateTime.now();
 @JoinColumn(name = "user_id", nullable = false)
 private User user;
 
-@ManyToOne(appedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
+@ManyToOne
 @JoinColumn(name = "episode_id", nullable = false)
 @JsonIgnoreProperties("commentaries")
 private Episode episode;

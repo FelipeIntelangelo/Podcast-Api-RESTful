@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String handleAllExceptions(Exception ex, org.springframework.web.context.request.WebRequest request) {
+    public String handleAllExceptions(Exception ex, WebRequest request) {
         logger.error("Error en endpoint {}: {}", request.getDescription(false), ex.getMessage(), ex);
         errorLogService.audit(
                 request.getDescription(false),

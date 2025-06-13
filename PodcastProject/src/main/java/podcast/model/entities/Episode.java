@@ -70,7 +70,7 @@ public class Episode {
     @JsonIgnoreProperties("episodes")
     private Podcast podcast;
 
-    @OneToMany(mappedBy = "episode")
+    @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("episodes")
     private List<Commentary> commentaries;
 
