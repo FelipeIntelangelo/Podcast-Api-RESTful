@@ -40,11 +40,21 @@ public class Podcast {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -59,6 +69,7 @@ public class Podcast {
     @CollectionTable(name = "CategoriesXPodcast", joinColumns = @JoinColumn(name = "podcast_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "category")
+    @Size(min = 1, message = "Debe ingresar al menos una categoría")
     private List<Category> categories;
 
 
