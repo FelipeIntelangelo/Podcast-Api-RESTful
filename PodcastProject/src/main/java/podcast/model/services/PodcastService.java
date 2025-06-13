@@ -46,7 +46,7 @@ public class PodcastService {
         podcastRepository.save(podcast);
     }
 
-    public List<PodcastDTO> getAllFiltered(String title, Integer userId, Category category, Boolean orderByViews, Boolean orderByRating) {
+    public List<PodcastDTO> getAllFiltered(String title, Integer userId, Category category, Boolean orderByViews) {
         List<Podcast> filtered;
 
         if (title == null && userId == null && category == null) {
@@ -66,8 +66,6 @@ public class PodcastService {
                 .toList());
         if (orderByViews != null && orderByViews) {
             filteredDTO.sort((p1, p2) -> Long.compare(p2.getAverageViews(), p1.getAverageViews()));
-        } else if (orderByRating != null && orderByRating) {
-            filteredDTO.sort((p1, p2) -> Double.compare(p2.getAverageRating(), p1.getAverageRating()));
         }
         return filteredDTO;
     }

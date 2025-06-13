@@ -14,6 +14,7 @@ import podcast.model.entities.helpers.DurationFromStringDeserializer;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -44,19 +45,14 @@ public class Episode {
     private LocalDateTime publicationDate;
 
     @PositiveOrZero
-    private Integer views;
+    private Integer views = 0;
 
     @PrePersist
     protected void onCreate() {
         this.publicationDate = LocalDateTime.now();
         this.createdAt = LocalDateTime.now();
         this.views = 0;
-        this.averageRating = 0.0;
     }
-
-    @PositiveOrZero
-    @Max(value = 10, message = "the rating must be between 0 and 10")
-    private Double averageRating;
 
     private String imageUrl;
 
@@ -81,16 +77,11 @@ public class Episode {
 
     @ManyToOne
     @JoinColumn(name = "podcast_id", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties("episodes")
     private Podcast podcast;
 
-    @JsonProperty("podcast")
-    public String getPodcastTitle() {
-        return podcast != null ? "Id: " + podcast.getId() + " = Title: " + podcast.getTitle() : null;
-    }
-
     @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+    @JsonIgnoreProperties("episode")
     private List<Commentary> commentaries;
 
     @JsonProperty("commentaries")
@@ -98,13 +89,15 @@ public class Episode {
         return commentaries != null ? commentaries.size() : 0;
     }
 
+    @OneToMany(mappedBy = "episode", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rating> ratings = new ArrayList<>();
+
     public EpisodeDTO toDTO() {
         return EpisodeDTO.builder()
                 .title(this.title)
                 .description(this.description)
                 .publicationDate(this.publicationDate)
                 .views(this.views)
-                .averageRating(this.averageRating)
                 .season(this.season)
                 .chapter(this.chapter)
                 .audioPath(this.audioPath)

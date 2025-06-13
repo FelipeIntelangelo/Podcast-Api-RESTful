@@ -22,13 +22,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import podcast.cfg.JwtUtil;
 import podcast.model.entities.User;
 import podcast.model.entities.dto.*;
-import podcast.model.exceptions.AlreadyCreatedException;
-import podcast.model.exceptions.PodcastNotFoundException;
-import podcast.model.exceptions.UnauthorizedException;
+import podcast.model.exceptions.*;
 import podcast.model.services.EpisodeHistoryService;
+import podcast.model.services.RatingService;
 import podcast.model.services.UserDetailsServiceImpl;
 import podcast.model.services.UserService;
-import podcast.model.exceptions.UserNotFoundException;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +42,7 @@ public class UserController {
     private final EpisodeHistoryService episodeHistoryService;
     private final UserService userService;
     private final UserDetailsServiceImpl userDetailsService;
+    private final RatingService ratingService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
@@ -53,14 +52,18 @@ public class UserController {
             UserService userService,
             UserDetailsServiceImpl userDetailsService,
             AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil
+            JwtUtil jwtUtil,
+            RatingService ratingService
     ) {
         this.episodeHistoryService = episodeHistoryService;
         this.userService = userService;
         this.userDetailsService = userDetailsService;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.ratingService = ratingService;
     }
+
+//* ===================================================================================================================
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException ex) {
@@ -97,6 +100,11 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
+    @ExceptionHandler(CommentaryNotFoundException.class)
+    public ResponseEntity<String> handleCommentaryNotFound(CommentaryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
@@ -107,16 +115,17 @@ public class UserController {
         return ResponseEntity.status(500).body(Map.of("error", "Ocurrió un error inesperado: " + ex.getMessage()));
     }
 
+//* ===================================================================================================================
 
     @Operation(
-        summary = "Obtener perfil del usuario autenticado",
-        description = "Recupera el perfil completo del usuario que está actualmente autenticado"
+        summary = "Get authenticated user's profile",
+        description = "Retrieves the full profile of the currently authenticated user.",
+        security = @SecurityRequirement(name = "bearerAuth")
     )
-    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Perfil encontrado exitosamente",
+            description = "Profile retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = User.class)
@@ -124,14 +133,18 @@ public class UserController {
         ),
         @ApiResponse(
             responseCode = "401",
-            description = "No autorizado - Token JWT faltante o inválido"
+            description = "Unauthorized - Missing or invalid JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "object", example = "{\"error\": \"Unauthorized\"}")
+            )
         ),
         @ApiResponse(
             responseCode = "404",
-            description = "Usuario no encontrado",
+            description = "User not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(type = "object", example = "{\"error\": \"Usuario no encontrado\"}")
+                schema = @Schema(type = "object", example = "{\"error\": \"User not found\"}")
             )
         )
     })
@@ -141,6 +154,8 @@ public class UserController {
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
         return userService.getAuthenticatedUser(userDetails.getUsername());
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Obtener todos los usuarios",
@@ -194,6 +209,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByIdAsDTO(userId));
     }
 
+//* ===================================================================================================================
+
     @Operation(
         summary = "Obtener usuario con credenciales por ID",
         description = "Recupera la información completa de un usuario, incluyendo sus credenciales. Solo accesible para administradores"
@@ -220,6 +237,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserWithCredentialsById(userId));
     }
 
+//* ===================================================================================================================
+
     @Operation(
         summary = "Obtener historial de reproducción",
         description = "Recupera el historial de episodios reproducidos por el usuario autenticado"
@@ -244,6 +263,8 @@ public class UserController {
         return ResponseEntity.ok(history);
     }
 
+//* ===================================================================================================================
+
     @Operation(
         summary = "Obtener podcasts favoritos",
         description = "Recupera la lista de podcasts marcados como favoritos por el usuario autenticado"
@@ -267,6 +288,8 @@ public class UserController {
         List<PodcastDTO> favorites = userService.getFavoritesByUsername(userDetails.getUsername());
         return ResponseEntity.ok(favorites);
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Registrar nuevo usuario",
@@ -313,6 +336,8 @@ public class UserController {
         return ResponseEntity.ok("Usuario registrado correctamente");
     }
 
+//* ===================================================================================================================
+
     @Operation(
         summary = "Agregar podcast a favoritos",
         description = "Añade un podcast a la lista de favoritos del usuario autenticado"
@@ -340,6 +365,52 @@ public class UserController {
         userService.addPodcastToFavorites(userDetails.getUsername(), podcastId);
         return ResponseEntity.ok("Podcast agregado a favoritos correctamente");
     }
+
+//* ===================================================================================================================
+
+    @Operation(
+        summary = "Calificar un episodio",
+        description = "Permite al usuario autenticado calificar un episodio con un puntaje.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Episodio calificado correctamente",
+            content = @Content(mediaType = "application/json", schema = @Schema(type = "string", example = "Episodio calificado correctamente"))
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Solicitud inválida o datos incorrectos",
+            content = @Content(mediaType = "application/json", schema = @Schema(type = "string", example = "Puntaje fuera de rango"))
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autorizado - Token JWT faltante o inválido"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Episodio no encontrado",
+            content = @Content(mediaType = "application/json", schema = @Schema(type = "string", example = "Episodio no encontrado"))
+        )
+    })
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{episodeId}/rate")
+    public ResponseEntity<String> rateEpisode(
+        @Parameter(description = "ID del episodio a calificar", required = true, example = "1")
+        @PathVariable Long episodeId,
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Datos de la calificación",
+            required = true,
+            content = @Content(schema = @Schema(implementation = RatingRequestDTO.class))
+        )
+        @RequestBody RatingRequestDTO ratingRequest,
+        @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
+        ratingService.rateEpisode(episodeId, userDetails.getUsername(), ratingRequest.getScore());
+        return ResponseEntity.ok("Episodio calificado correctamente");
+    }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Actualizar perfil de usuario",
@@ -380,14 +451,49 @@ public class UserController {
         return ResponseEntity.ok(updatedUser.toDTO());
     }
 
+//* ===================================================================================================================
+
+    @Operation(
+        summary = "Delete a user by ID",
+        description = "Deletes a user from the system by their ID. Only accessible to administrators.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "User deleted successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Usuario eliminado correctamente")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Missing or invalid JWT token"
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have admin role"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "User not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "string", example = "Usuario con id 123 no encontrado")
+            )
+        )
+    })
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<String> deleteUserById(
-            @Parameter(description = "ID del usuario a eliminar", required = true, example = "1")
+            @Parameter(description = "ID of the user to delete", required = true, example = "1")
             @PathVariable Long userId) {
         userService.deleteUserById(userId);
         return ResponseEntity.ok("Usuario eliminado correctamente");
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Eliminar perfil de usuario",
@@ -412,6 +518,8 @@ public class UserController {
         userService.deleteAuthenticatedUser(userDetails.getUsername());
         return ResponseEntity.ok("Usuario eliminado correctamente");
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Eliminar podcast de favoritos",

@@ -27,6 +27,7 @@ import podcast.model.entities.dto.UpdateEpisodeDTO;
 import podcast.model.exceptions.*;
 import podcast.model.services.EpisodeHistoryService;
 import podcast.model.services.EpisodeService;
+import podcast.model.services.RatingService;
 
 import java.util.List;
 
@@ -37,12 +38,16 @@ public class EpisodeController {
 
     private final EpisodeService episodeService;
     private final EpisodeHistoryService episodeHistoryService;
+    private final RatingService ratingService;
 
     @Autowired
-    public EpisodeController(EpisodeService episodeService, EpisodeHistoryService episodeHistoryService) {
+    public EpisodeController(EpisodeService episodeService, EpisodeHistoryService episodeHistoryService, RatingService ratingService) {
         this.episodeService = episodeService;
         this.episodeHistoryService = episodeHistoryService;
+        this.ratingService = ratingService;
     }
+
+//* ===================================================================================================================
 
     @ExceptionHandler(EpisodeNotFoundException.class)
     public ResponseEntity<String> handleEpisodeNotFound(EpisodeNotFoundException ex) {
@@ -68,6 +73,11 @@ public class EpisodeController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
+    @ExceptionHandler(ChapterOrSeasonInvalidException.class)
+    public ResponseEntity<String> handleChapterOrSeasonInvalid(ChapterOrSeasonInvalidException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
     @ExceptionHandler(PodcastNotFoundException.class)
     public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
@@ -88,6 +98,13 @@ public class EpisodeController {
     public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
+    @ExceptionHandler(CommentaryNotFoundException.class)
+    public ResponseEntity<String> handleCommentaryNotFound(CommentaryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+//* ===================================================================================================================
 
     @Operation(
             summary = "Obtener todos los episodios",
@@ -113,6 +130,8 @@ public class EpisodeController {
         return ResponseEntity.ok(episodes.stream().map(Episode::toDTO).toList());
     }
 
+//* ===================================================================================================================
+
     @Operation(
             summary = "Obtener episodio por ID",
             description = "Recupera un episodio específico por su identificador único"
@@ -134,6 +153,8 @@ public class EpisodeController {
         Episode episodePivot = episodeService.getEpisodeById(episodeId);
         return ResponseEntity.ok(episodePivot);
     }
+
+//* ===================================================================================================================
 
     @Operation(
             summary = "Reproducir episodio",
@@ -161,6 +182,8 @@ public class EpisodeController {
         return ResponseEntity.ok(audioUrl);
     }
 
+//* ===================================================================================================================
+
     @Operation(
             summary = "Obtener comentarios de un episodio",
             description = "Recupera todos los comentarios asociados a un episodio específico"
@@ -183,6 +206,50 @@ public class EpisodeController {
         List<Commentary> comments = episodeService.getComments(episodeId);
         return ResponseEntity.ok(comments.stream().map(Commentary::toDTO).toList());
     }
+
+//* ===================================================================================================================
+
+    @Operation(
+        summary = "Get average rating of an episode",
+        description = "Returns the average rating (as a decimal number) for the specified episode.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Average rating retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "number", format = "double", example = "4.5")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Missing or invalid JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "object", example = "{\"error\": \"Unauthorized\"}")
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Episode not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(type = "object", example = "{\"error\": \"Episode not found\"}")
+            )
+        )
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{episodeId}/average")
+    public ResponseEntity<Double> getAverageRating(
+            @Parameter(description = "ID of the episode", required = true, example = "1")
+            @PathVariable Long episodeId) {
+        Double avg = ratingService.getAverageRating(episodeId);
+        return ResponseEntity.ok(avg);
+    }
+
+//* ===================================================================================================================
 
     @Operation(
             summary = "Guardar nuevo episodio",
@@ -214,33 +281,7 @@ public class EpisodeController {
         return ResponseEntity.ok("Episode saved successfully");
     }
 
-    @Operation(
-            summary = "Calificar episodio",
-            description = "Permite a un usuario autenticado calificar un episodio con un valor del 1 al 5"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Episodio calificado correctamente",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(type = "string", example = "Episode rated successfully")
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "Calificación inválida"),
-            @ApiResponse(responseCode = "401", description = "No autorizado"),
-            @ApiResponse(responseCode = "404", description = "Episodio no encontrado")
-    })
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/{episodeId}/rate")
-    public ResponseEntity<String> rateEpisode(
-            @Parameter(description = "ID del episodio") @PathVariable("episodeId") Long episodeId,
-            @Parameter(description = "Calificación (1-5)", schema = @Schema(type = "integer", minimum = "1", maximum = "5"))
-            @RequestParam("rating") Long rating,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
-        episodeHistoryService.rateEpisode(episodeId, rating, userDetails.getUsername());
-        return ResponseEntity.ok("Episode rated successfully");
-    }
+//* ===================================================================================================================
 
     @Operation(
             summary = "Comentar episodio",
@@ -268,6 +309,8 @@ public class EpisodeController {
         episodeService.commentEpisode(episodeId, comment.getCommentary(), userDetails.getUsername());
         return ResponseEntity.ok("Comment added successfully");
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Actualizar un episodio existente",
@@ -311,6 +354,8 @@ public class EpisodeController {
         EpisodeDTO updatedEpisode = episodeService.updateEpisode(episodeId, updates, userDetails);
         return ResponseEntity.ok(updatedEpisode);
     }
+
+//* ===================================================================================================================
 
     @Operation(
             summary = "Eliminar episodio",

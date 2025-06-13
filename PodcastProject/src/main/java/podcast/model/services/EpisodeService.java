@@ -40,29 +40,37 @@ private final ICommentaryRepository commentaryRepository;
 
     // SAVE
     public void save(Episode episode) {
-        podcastRepository.findById(episode.getPodcast().getId()).ifPresentOrElse(
-                existingPodcast -> {
-                    // BUSCA ULTIMO EPISODIO POR FECHA Y VALIDA SEASON Y CHAPTER
-                    existingPodcast.getEpisodes().stream()
-                            .max((e1, e2) -> e1.getCreatedAt().compareTo(e2.getCreatedAt()))
-                            .ifPresent(ultimo -> {
-                                if  (episode.getSeason() < ultimo.getSeason() ||
-                                    (episode.getSeason().equals(ultimo.getSeason()) && episode.getChapter() <= ultimo.getChapter())) {
-                                    throw new ChapterOrSeasonInvalidException("The episode must have a season and/or chapter greater than the last one (" +
-                                            "Season: " + ultimo.getSeason() + ", Chapter: " + ultimo.getChapter() + ")");
-                                }
-                                if (episode.getSeason() > ultimo.getSeason() && episode.getChapter() != 1) {
-                                    throw new ChapterOrSeasonInvalidException("If the season is greater, the chapter must be 1");
-                                }
-                            });
-                    episodeRepository.save(episode);
-                    existingPodcast.getEpisodes().add(episode);
-                    podcastRepository.save(existingPodcast);
-                },
-                () -> {
-                    throw new PodcastNotFoundException("Podcast with name " + episode.getPodcast().getTitle() + " not found");
-                }
-        );
+        if (episode.getPodcast() == null || episode.getPodcast().getId() == null) {
+            throw new PodcastNotFoundException("El episodio debe tener un podcast con id válido");
+        }
+        Long podcastId = episode.getPodcast().getId();
+        Podcast existingPodcast = podcastRepository.findById(podcastId)
+                .orElseThrow(() -> new PodcastNotFoundException("Podcast con id " + podcastId + " no encontrado"));
+        // Asigna el podcast completo al episodio
+        if(existingPodcast.getEpisodes().stream()
+                .anyMatch(e -> e.getTitle().equalsIgnoreCase(episode.getTitle())))
+        {
+            throw new AlreadyCreatedException("An episode with the title '" + episode.getTitle() + "' already exists in this podcast");
+        }
+        episode.setPodcast(existingPodcast);
+
+        // Validaciones de season y chapter
+        existingPodcast.getEpisodes().stream()
+                .max((e1, e2) -> e1.getPublicationDate().compareTo(e2.getPublicationDate()))
+                .ifPresent(ultimo -> {
+                    if  (episode.getSeason() < ultimo.getSeason() ||
+                            (episode.getSeason().equals(ultimo.getSeason()) && episode.getChapter() <= ultimo.getChapter())) {
+                        throw new ChapterOrSeasonInvalidException("The episode must have a season and/or chapter greater than the last one (" +
+                                "Season: " + ultimo.getSeason() + ", Chapter: " + ultimo.getChapter() + ")");
+                    }
+                    if (episode.getSeason() > ultimo.getSeason() && episode.getChapter() != 1) {
+                        throw new ChapterOrSeasonInvalidException("If the season is greater, the chapter must be 1");
+                    }
+                });
+
+        episodeRepository.save(episode);
+        existingPodcast.getEpisodes().add(episode);
+        podcastRepository.save(existingPodcast);
     }
 
     // UPDATE
@@ -80,6 +88,9 @@ private final ICommentaryRepository commentaryRepository;
         boolean flag = false;
         // Actualizar los campos del episodio si están presentes en el DTO
         if (updates.getTitle() != null && !updates.getTitle().isBlank()) {
+            if(updates.getTitle().equals(episode.getTitle())){
+                throw new AlreadyCreatedException("An episode with the title '" + updates.getTitle() + "' already exists in this podcast");
+            }
             episode.setTitle(updates.getTitle());
             flag = true;
         }
@@ -149,7 +160,6 @@ private final ICommentaryRepository commentaryRepository;
         }
         return filtered;
     }
-
     public void commentEpisode(Long episodeId, String comment, String username) {
         if (comment == null || comment.isBlank()) {
             throw new IllegalArgumentException("Comment cannot be null or blank");
@@ -172,6 +182,7 @@ private final ICommentaryRepository commentaryRepository;
 
         commentaryRepository.save(commentary);
     }
+
 
     public List<Episode> getEpisodesByMostViews() {
         if (episodeRepository.findAll().isEmpty()) {

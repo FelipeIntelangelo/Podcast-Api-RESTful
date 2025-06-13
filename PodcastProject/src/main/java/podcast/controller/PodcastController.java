@@ -41,6 +41,8 @@ public class PodcastController {
     @Autowired
     private PodcastService podcastService;
 
+//* ===================================================================================================================
+
     @ExceptionHandler(PodcastNotFoundException.class)
     public ResponseEntity<String> handlePodcastNotFound(PodcastNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
@@ -76,6 +78,8 @@ public class PodcastController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+//* ===================================================================================================================
+
     @Operation(
         summary = "Obtener todos los podcasts",
         description = "Recupera una lista de podcasts con opciones de filtrado por título, creador, categoría y ordenamiento por vistas"
@@ -110,15 +114,14 @@ public class PodcastController {
             @RequestParam(required = false) String category,
             
             @Parameter(description = "Ordenar resultados por número de vistas (true = descendente)")
-            @RequestParam(required = false) Boolean orderByViews,
-
-            @Parameter(description = "Ordenar resultados por calificación promedio (true = descendente)")
-            @RequestParam(required = false) Boolean orderByRating
+            @RequestParam(required = false) Boolean orderByViews
     ) {
         Category categoryEnum = (category != null) ? Category.valueOf(category) : null;
-        List<PodcastDTO> podcasts = podcastService.getAllFiltered(title, userId, categoryEnum, orderByViews, orderByRating);
+        List<PodcastDTO> podcasts = podcastService.getAllFiltered(title, userId, categoryEnum, orderByViews);
         return ResponseEntity.ok(podcasts);
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Obtener podcast por ID",
@@ -148,6 +151,9 @@ public class PodcastController {
             @PathVariable("podcastId") Long podcastId) {
         return ResponseEntity.ok(podcastService.getPodcastById(podcastId));
     }
+
+//* ===================================================================================================================
+
 
     @Operation(
         summary = "Obtener podcasts del usuario autenticado",
@@ -225,6 +231,7 @@ public class PodcastController {
         return ResponseEntity.ok("Podcast saved successfully");
     }
 
+//* ===================================================================================================================
 
     @Operation(
             summary = "Actualizar un podcast existente",
@@ -268,6 +275,8 @@ public class PodcastController {
         PodcastUpdateDTO updatedPodcast = podcastService.updatePodcast(podcastId, updates, userDetails);
         return ResponseEntity.ok(updatedPodcast);
     }
+
+//* ===================================================================================================================
 
     @Operation(
         summary = "Eliminar podcast",
