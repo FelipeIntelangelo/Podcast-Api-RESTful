@@ -69,7 +69,6 @@ Tabla para gestión de roles (admin, editor, user, etc.).
 ### Autenticación
 - `POST /auth/register` → Crea usuario
 - `POST /auth/login` → Login y JWT
-- `POST /auth/recover` → Solicitar reset de contraseña
 
 ### Usuarios
 - `GET /users/:id` → Info pública
