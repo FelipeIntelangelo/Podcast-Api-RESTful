@@ -105,3 +105,180 @@ git clone https://github.com/FelipeIntelangelo/podcast.git
 cd podcast-api
 npm install
 npm run dev
+
+¡Listo! Acá tenés **TODO lo que pediste**, en formato Markdown perfecto para README. Incluye:
+
+* Autenticación
+* Flujo sugerido completo
+* Códigos de ejemplo
+* Link a colección Postman
+  ✅ **Todo listo para copiar/pegar al final de tu README**.
+
+````markdown
+---
+
+## 🧪 Testing de la API
+
+Se recomienda usar herramientas como **Postman** o **Insomnia** para probar los endpoints.  
+A continuación, algunas pautas para testear correctamente.
+
+---
+
+### 🔐 Autenticación
+
+- **Login**  
+  `POST /login`  
+  _Body de ejemplo:_
+  ```json
+  {
+    "username": "usuario123",
+    "password": "contrasena123"
+  }
+````
+
+* Una vez autenticado, incluí el token JWT en el header de cada request protegida:
+
+  ```
+  Authorization: Bearer <tu_token_aquí>
+  ```
+
+---
+
+### ✅ Flujo sugerido para testeo manual
+
+Este es un flujo base para validar que toda la API funciona correctamente de extremo a extremo:
+
+1. **Registrar un usuario**
+   `POST /register`
+   *Body:*
+
+   ```json
+   {
+     "name": "Juan",
+     "last_name": "Pérez",
+     "nickname": "jperez",
+     "email": "juan@mail.com",
+     "username": "juan123",
+     "password": "claveSegura"
+   }
+   ```
+
+2. **Iniciar sesión y obtener token JWT**
+   `POST /login`
+   *Body:*
+
+   ```json
+   {
+     "username": "juan123",
+     "password": "claveSegura"
+   }
+   ```
+
+3. **Crear un podcast**
+   `POST /podcasts/save`
+   *Headers:*
+   `Authorization: Bearer <token>`
+   *Body:*
+
+   ```json
+   {
+     "title": "Mi Primer Podcast",
+     "description": "Podcast sobre tecnología y desarrollo",
+     "image_url": "https://image.com/logo.jpg"
+   }
+   ```
+
+4. **Crear un episodio**
+   `POST /episodes`
+   *Headers:*
+   `Authorization: Bearer <token>`
+   *Body:*
+
+   ```json
+   {
+     "podcast_id": 1,
+     "title": "Introducción al proyecto",
+     "description": "Explicamos de qué se va a tratar el podcast.",
+     "audio_path": "https://audio.com/intro.mp3",
+     "image_url": "https://image.com/cap1.jpg",
+     "duration": 360,
+     "season": 1,
+     "chapter": 1,
+     "public_action_date": "2025-06-01T00:00:00"
+   }
+   ```
+
+5. **Reproducir episodio (marcar como escuchado)**
+   `GET /episodes/playEpisode?id=1`
+   *Headers:*
+   `Authorization: Bearer <token>`
+
+6. **Comentar episodio**
+   `POST /commentary`
+   *Headers:*
+   `Authorization: Bearer <token>`
+   *Body:*
+
+   ```json
+   {
+     "episode_id": 1,
+     "content": "Muy buen episodio, sigan así!"
+   }
+   ```
+
+7. **Calificar episodio**
+   `POST /rate`
+   *Headers:*
+   `Authorization: Bearer <token>`
+   *Body:*
+
+   ```json
+   {
+     "episode_id": 1,
+     "score": 5
+   }
+   ```
+
+8. **Agregar podcast a favoritos**
+   `POST /users/toMyFavs`
+   *Headers:*
+   `Authorization: Bearer <token>`
+   *Body:*
+
+   ```json
+   {
+     "podcast_id": 1
+   }
+   ```
+
+9. **Ver historial de reproducción**
+   `GET /users/history`
+   *Headers:*
+   `Authorization: Bearer <token>`
+
+10. **Ver favoritos**
+    `GET /users/favs`
+    *Headers:*
+    `Authorization: Bearer <token>`
+
+---
+
+---
+
+## 📁 Colecciones Postman
+
+Para facilitar el testing de la API, podés importar las siguientes colecciones de Postman, organizadas por módulo.  
+Cada una contiene todos los endpoints relevantes y ejemplos de uso:
+
+- 🎧 **Episodios**  
+  [🔗 Ver colección de Episodios](https://intelangelofelipe.postman.co/workspace/Intelangelo-Felipe's-Workspace~be26952f-9c9f-40b0-89c2-6c98002e26fb/collection/45430153-7c3e5f6e-cd55-4802-9653-99bd628340cd?action=share&creator=45430153)
+
+- 📻 **Podcasts**  
+  [🔗 Ver colección de Podcasts](https://intelangelofelipe.postman.co/workspace/Intelangelo-Felipe's-Workspace~be26952f-9c9f-40b0-89c2-6c98002e26fb/collection/45430153-46933ec1-9ee0-43be-9b19-e5c42a4d8e7c?action=share&creator=45430153)
+
+- 👤 **Usuarios**  
+  [🔗 Ver colección de Usuarios](https://intelangelofelipe.postman.co/workspace/Intelangelo-Felipe's-Workspace~be26952f-9c9f-40b0-89c2-6c98002e26fb/collection/45430153-8f9113fd-7b5f-4a90-b51f-0a3a0c702ea7?action=share&creator=45430153)
+
+> 💡 Tip: Podés importar los links directamente en Postman desde `File > Import > Link` y pegar cualquiera de los URLs anteriores.
+
+
