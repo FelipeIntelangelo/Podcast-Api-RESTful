@@ -110,20 +110,28 @@ cd podcast-api
 npm install
 npm run dev
 
-¡Listo! Acá tenés **TODO lo que pediste**, en formato Markdown perfecto para README. Incluye:
-
 * Autenticación
 * Flujo sugerido completo
 * Códigos de ejemplo
 * Link a colección Postman
-  ✅ **Todo listo para copiar/pegar al final de tu README**.
+  ✅ **Todo listo para copiar/pegar al final del README**.
+````
 
-````markdown
+* IMPORTANTE: VERIFICAR UNA VEZ EJECUTADO EL PROYECTO POR PRIMERA VEZ
+              MODIFICAR jpa.hibernate.ddl-auto = create
+*             spring.jpa.hibernate.ddl-auto = validate
+  EN
+*          PodcastProject/src/main/resources/application.properties
+![DER](Assets/appPropertiesCreate.png)
+
+   De esta manera deberia quedar y nos aseguramos que no cree la base de datos cada vez
+   que se levante el servidor, perdiendo todos nuestros datos almacenados.
+
 ---
-
+```bash
 ## 🧪 Testing de la API
 
-Se recomienda usar herramientas como **Postman** o **Insomnia** para probar los endpoints.  
+Se recomienda usar herramientas como **Postman** para probar los endpoints.  
 A continuación, algunas pautas para testear correctamente.
 
 ---
