@@ -8,7 +8,7 @@ Una API RESTful para gestionar una plataforma de podcasts. Permite a los usuario
 
 - **Lenguaje:** Java
 - **Framework** SpringBoot
-- **Base de datos:** MySQL 
+- **Base de datos:** MySQL
 - **ORM recomendado:** Hibernate
 
 ---
