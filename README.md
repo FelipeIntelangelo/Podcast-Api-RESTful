@@ -15,7 +15,9 @@ Una API RESTful para gestionar una plataforma de podcasts. Permite a los usuario
 
 ## 📂 Estructura del modelo
 
-![DER]()
+**Diagrama Entidad - Relación**
+
+![DER](Assets/DER.png)
 
 ### 👤 `users`
 Contiene la información básica del usuario.
