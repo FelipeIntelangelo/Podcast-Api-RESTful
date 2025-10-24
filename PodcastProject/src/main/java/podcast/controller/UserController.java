@@ -150,9 +150,9 @@ public class UserController {
     })
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/myProfile")
-    public User getAuthenticatedUser(
+    public ResponseEntity<User> getAuthenticatedUser(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
-        return userService.getAuthenticatedUser(userDetails.getUsername());
+        return ResponseEntity.ok(userService.getAuthenticatedUser(userDetails.getUsername()));
     }
 
 //* ===================================================================================================================
