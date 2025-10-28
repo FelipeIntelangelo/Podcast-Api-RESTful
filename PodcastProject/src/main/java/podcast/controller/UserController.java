@@ -118,7 +118,7 @@ public class UserController {
 //* ===================================================================================================================
 
     @Operation(
-        summary = "Get authenticated user's profile",
+        summary = "Obtener mi perfil",
         description = "Retrieves the full profile of the currently authenticated user.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
