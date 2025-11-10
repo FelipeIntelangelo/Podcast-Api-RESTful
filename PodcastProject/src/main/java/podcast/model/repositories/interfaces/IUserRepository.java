@@ -2,6 +2,7 @@ package podcast.model.repositories.interfaces;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import podcast.model.entities.User;
 
@@ -21,5 +22,10 @@ public interface IUserRepository extends JpaRepository <User, Long> {
     boolean existsByCredentialUsername(String username);
 
     boolean existsByCredentialResetToken(String resetToken);
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.credential.roles WHERE u.id = :id")
+    Optional<User> findByIdWithCredentialAndRoles(@Param("id") Long id);
+
+
 
 }

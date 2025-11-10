@@ -39,8 +39,13 @@ public class PodcastService {
         if (podcast.getUser() == null || podcast.getUser().getId() == null) {
             throw new NullUserException("Podcast must have a valid user");
         }
-        User user = userRepository.findById(podcast.getUser().getId())
+        User user = userRepository.findByIdWithCredentialAndRoles(podcast.getUser().getId())
                 .orElseThrow(() -> new PodcastNotFoundException("User with ID " + podcast.getUser().getId() + " not found"));
+
+        if (user.getCredential().getRoles() == null) {
+            user.getCredential().setRoles(new java.util.HashSet<>());
+        }
+
         user.getCredential().getRoles().add(Role.ROLE_CREATOR);
         userRepository.save(user);
         podcastRepository.save(podcast);
