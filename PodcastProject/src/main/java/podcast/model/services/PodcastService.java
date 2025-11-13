@@ -63,10 +63,16 @@ public class PodcastService {
                 filtered = podcastRepository.findAll();
             }
         }
-        if (filtered.isEmpty()) {
+
+        // Filtrar podcasts inactivos
+        List<Podcast> activeFiltered = filtered.stream()
+                .filter(p -> Boolean.TRUE.equals(p.getIsActive()))
+                .toList();
+
+        if (activeFiltered.isEmpty()) {
             throw new PodcastNotFoundException("No podcasts found");
         }
-        List<PodcastDTO> filteredDTO = new ArrayList<>(filtered.stream()
+        List<PodcastDTO> filteredDTO = new ArrayList<>(activeFiltered.stream()
                 .map(Podcast::toDTO)
                 .toList());
         if (orderByViews != null && orderByViews) {
@@ -76,16 +82,25 @@ public class PodcastService {
     }
 
     public Podcast getPodcastById(Long podcastId) {
-        return podcastRepository.findById(podcastId).orElseThrow( () ->
+        Podcast podcast = podcastRepository.findById(podcastId).orElseThrow( () ->
                 new PodcastNotFoundException("Podcast with ID " + podcastId + " not found"));
+        // No devolver podcasts inactivos
+        if (!Boolean.TRUE.equals(podcast.getIsActive())) {
+            throw new PodcastNotFoundException("Podcast with ID " + podcastId + " not found");
+        }
+        return podcast;
     }
 
     public List<Podcast> getByUsername(String username) {
         List<Podcast> podcasts = podcastRepository.findByUser_Credential_Username(username);
-        if (podcasts.isEmpty()) {
+        // Filtrar inactivos
+        List<Podcast> activePodcasts = podcasts.stream()
+                .filter(p -> Boolean.TRUE.equals(p.getIsActive()))
+                .toList();
+        if (activePodcasts.isEmpty()) {
             throw new PodcastNotFoundException("No podcasts found for user " + username);
         }
-        return podcasts;
+        return activePodcasts;
     }
 
 
@@ -101,7 +116,8 @@ public class PodcastService {
         if (!podcast.getUser().getCredential().getUsername().equals(username) && !user.getCredential().getRoles().contains(Role.ROLE_ADMIN)) {
             throw new UnauthorizedException("Podcast with ID " + podcastId + " does not belong to YOU" + username + "and you are not an admin");
         }
-        podcastRepository.deleteById(podcastId);
+        podcast.setIsActive(false);
+        podcastRepository.save(podcast);
     }
 
     public PodcastUpdateDTO updatePodcast(Long podcastId, @Valid PodcastUpdateDTO updates, UserDetails userDetails) {
