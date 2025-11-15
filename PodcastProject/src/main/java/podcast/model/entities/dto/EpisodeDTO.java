@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class EpisodeDTO {
+    private Integer id;
     private String title;
     private String description;
     private String audioPath;
@@ -21,5 +22,4 @@ public class EpisodeDTO {
     private Integer chapter;
     private LocalDateTime publicationDate;
     private String podcastTitle;
-
 }

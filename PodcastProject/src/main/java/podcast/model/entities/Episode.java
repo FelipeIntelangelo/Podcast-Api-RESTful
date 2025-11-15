@@ -94,6 +94,7 @@ public class Episode {
 
     public EpisodeDTO toDTO() {
         return EpisodeDTO.builder()
+                .id(this.id)
                 .title(this.title)
                 .description(this.description)
                 .publicationDate(this.publicationDate)
