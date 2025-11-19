@@ -102,30 +102,54 @@ Tabla para gestión de roles (admin, editor, user, etc.).
 
 ---
 
-## 🛠 Instalación
+## 🛠 Instalación y Configuración
+
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/FelipeIntelangelo/podcast.git
 cd podcast-api
-npm install
-npm run dev
+```
 
-* Autenticación
-* Flujo sugerido completo
-* Códigos de ejemplo
-* Link a colección Postman
-  ✅ **Todo listo para copiar/pegar al final del README**.
-````
+### 2. Configurar application.properties
 
-* IMPORTANTE: VERIFICAR UNA VEZ EJECUTADO EL PROYECTO POR PRIMERA VEZ
-              MODIFICAR jpa.hibernate.ddl-auto = create
-*             spring.jpa.hibernate.ddl-auto = validate
-  EN
-*          PodcastProject/src/main/resources/application.properties
+El archivo `application.properties` contiene información sensible (credenciales de base de datos, secretos JWT, etc.) y está excluido del control de versiones por seguridad.
+
+**Crear el archivo de configuración:**
+
+```bash
+# Copiar el template para crear tu archivo de configuración
+cp PodcastProject/src/main/resources/application.properties.template PodcastProject/src/main/resources/application.properties
+```
+
+**Editar el archivo** `PodcastProject/src/main/resources/application.properties` y configurar:
+
+- `spring.datasource.username`: Tu usuario de MySQL
+- `spring.datasource.password`: Tu contraseña de MySQL
+- `jwt.secret`: Una clave secreta segura para firmar los tokens JWT
+
+### 3. Configuración de la base de datos
+
+Asegúrate de tener MySQL instalado y crear la base de datos:
+
+```sql
+CREATE DATABASE podcastutn;
+```
+
+### 4. Ejecutar el proyecto
+
+```bash
+cd PodcastProject
+./mvnw spring-boot:run
+```
+
+* **IMPORTANTE:** VERIFICAR UNA VEZ EJECUTADO EL PROYECTO POR PRIMERA VEZ
+  - Modificar `jpa.hibernate.ddl-auto = create` a `spring.jpa.hibernate.ddl-auto = validate`
+  - En `PodcastProject/src/main/resources/application.properties`
+
 ![DER](Assets/appPropertiesCreate.png)
 
-   De esta manera deberia quedar y nos aseguramos que no cree la base de datos cada vez
-   que se levante el servidor, perdiendo todos nuestros datos almacenados.
+De esta manera nos aseguramos que no cree la base de datos cada vez que se levante el servidor, perdiendo todos nuestros datos almacenados.
 
 ---
 ```bash
