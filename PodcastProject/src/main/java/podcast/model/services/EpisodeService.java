@@ -1,5 +1,6 @@
 package podcast.model.services;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,18 +25,21 @@ private final IPodcastRepository podcastRepository;
 private final IEpisodeHistoryRepository episodeHistoryRepository;
 private final IUserRepository userRepository;
 private final ICommentaryRepository commentaryRepository;
+private final CloudinaryService cloudinaryService;
 
     @Autowired
     public EpisodeService(IEpisodeRepository episodeRepository,
                           IPodcastRepository podcastRepository,
                           IEpisodeHistoryRepository episodeHistoryRepository,
                           IUserRepository userRepository,
-                          ICommentaryRepository commentaryRepository) {
+                          ICommentaryRepository commentaryRepository,
+                          CloudinaryService cloudinaryService) {
         this.episodeRepository = episodeRepository;
         this.podcastRepository = podcastRepository;
         this.episodeHistoryRepository = episodeHistoryRepository;
         this.userRepository = userRepository;
         this.commentaryRepository = commentaryRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // SAVE
@@ -116,20 +120,29 @@ private final ICommentaryRepository commentaryRepository;
         return episodeDTO;
     }
 
-    // DELETE
+    @Transactional
     public void deleteById(Long episodeId, String username) {
         Episode episode = episodeRepository.findById(episodeId).orElseThrow(() ->
                 new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
         Podcast podcast = episode.getPodcast();
-        if (!podcast.getUser().getCredential().getUsername().equals(username) &&
-        !podcast.getUser().getAuthorities().contains(Role.ROLE_ADMIN)) {
-            throw new UnauthorizedException("Episode with ID " + episodeId + " does not belong to YOU " + username + " and you are not an admin");
-        }
+
+        // Validaciones...
+
+        // Cloudinary
+        System.out.println("Episode imageUrl: " + episode.getImageUrl());
+        System.out.println("Episode audioPath: " + episode.getAudioPath());
+        cloudinaryService.deleteFile(episode.getImageUrl());
+        cloudinaryService.deleteFile(episode.getAudioPath());
+
+        episodeHistoryRepository.deleteByEpisodeId(episodeId);
+
+        // DELETE de BD
+        System.out.println("⚠️ DELETING EPISODE FROM DATABASE...");
         podcast.getEpisodes().remove(episode);
         podcastRepository.save(podcast);
         episodeRepository.delete(episode);
+        System.out.println("✓ EPISODE DELETED FROM DATABASE");
     }
-
     // MOSTRAR - GETS
 
     public Episode getEpisodeById(Long episodeId) {

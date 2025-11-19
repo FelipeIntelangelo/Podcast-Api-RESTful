@@ -65,6 +65,8 @@ public class EpisodeHistoryService {
         episodeRepository.save(episode);
     }
 
-
+    public void deleteByEpisodeId(Long episodeId) {
+        episodeHistoryRepository.deleteByEpisodeId(episodeId);
+    }
 
 }
