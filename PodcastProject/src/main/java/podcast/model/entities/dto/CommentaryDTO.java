@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class CommentaryDTO {
+    private Integer id;
     private String content;
     private String userName;
+    private String userProfilePicture;
     private LocalDateTime createdAt;
 }

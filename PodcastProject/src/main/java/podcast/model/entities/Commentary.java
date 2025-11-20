@@ -48,9 +48,11 @@ private Episode episode;
 
 public CommentaryDTO toDTO() {
     return CommentaryDTO.builder()
+            .id(id)
             .content(content)
             .createdAt(createdAt)
             .userName(user.getNickname())
+            .userProfilePicture(user.getProfilePicture())
             .build();
 }
 
