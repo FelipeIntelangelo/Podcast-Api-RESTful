@@ -19,6 +19,8 @@ Una API RESTful para gestionar una plataforma de podcasts. Permite a los usuario
 
 ![DER](Assets/DER.png)
 
+**Diagrama UML**
+
 ![UML](Assets/uml.png)
 
 ### 👤 `users`
