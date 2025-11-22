@@ -121,7 +121,7 @@ private final CloudinaryService cloudinaryService;
         return episodeDTO;
     }
 
-
+    @Transactional
     public void deleteById(Long episodeId, String username) {
         Episode episode = episodeRepository.findById(episodeId).orElseThrow(() ->
                 new EpisodeNotFoundException("Episode with ID " + episodeId + " not found"));
