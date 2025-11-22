@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -25,7 +26,7 @@ public class PodcastDTO {
     private String title;
     private String description;
     private List<Category> category;
-    private String imageUrl;
     private Long averageViews;
     private Double averageRating;
+    private LocalDateTime createdAt;
 }

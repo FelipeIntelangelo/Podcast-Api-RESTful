@@ -112,7 +112,7 @@ public class Podcast {
 
     public PodcastDTO toDTO() {
         return new PodcastDTO(this.getId(), this.getTitle(), this.getDescription(), this.getCategories(),
-                this.getImageUrl(),calcularViewsPromedio(), this.getAverageRating());
+                this.getImageUrl(),calcularViewsPromedio(), this.getAverageRating(), this.getCreatedAt());
     }
 
     public PodcastUpdateDTO toUpdateDTO() {
