@@ -1,5 +1,6 @@
 package podcast.model.services;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.security.core.userdetails.UserDetails;
 import podcast.model.entities.dto.PodcastUpdateDTO;
@@ -29,6 +30,7 @@ public class PodcastService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public void save(Podcast podcast) {
         podcastRepository.findAll().stream()
                 .filter(podcastpvt -> podcastpvt.getTitle().equals(podcast.getTitle()))
@@ -36,9 +38,11 @@ public class PodcastService {
                 .ifPresent(podcastpvt -> {
                     throw new AlreadyCreatedException("Podcast with name " + podcast.getTitle() + " already exists");
                 });
+
         if (podcast.getUser() == null || podcast.getUser().getId() == null) {
             throw new NullUserException("Podcast must have a valid user");
         }
+
         User user = userRepository.findByIdWithCredentialAndRoles(podcast.getUser().getId())
                 .orElseThrow(() -> new PodcastNotFoundException("User with ID " + podcast.getUser().getId() + " not found"));
 
@@ -47,7 +51,13 @@ public class PodcastService {
         }
 
         user.getCredential().getRoles().add(Role.ROLE_CREATOR);
+        // user está gestionado dentro de la transacción; bastaría con modificarlo,
+        // pero si querés podés mantener el save:
         userRepository.save(user);
+
+        // ⬅️ IMPORTANTE: usar el User gestionado
+        podcast.setUser(user);
+
         podcastRepository.save(podcast);
     }
 

@@ -515,6 +515,7 @@ public class UserController {
     @DeleteMapping("/myProfile")
     public ResponseEntity<String> deleteAuthenticatedUser(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
+        System.out.println("Solicitud para eliminar el usuario: " + userDetails.getUsername());
         userService.deleteAuthenticatedUser(userDetails.getUsername());
         return ResponseEntity.ok("Usuario eliminado correctamente");
     }
